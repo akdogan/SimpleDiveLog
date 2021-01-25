@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.SimpleDiveLog.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_marginStart">@dimen/text_input_fields_margin</item>
+        <item name="android:layout_marginEnd">@dimen/text_input_fields_margin</item>
+        <item name="android:layout_marginTop">@dimen/text_input_fields_margin</item>
+        <item name="android:textAppearance">?attr/textAppearanceBody1
+        </item> <!-- Premade set, see https://material.io/develop/android/theming/typography for more -->
+    </style>
+
+    <style name="DetailViewContentField" parent="Widget.AppCompat.TextView">
+        <item name="android:textSize">18sp</item>
+
+        <item name="android:layout_marginTop">24dp</item>
+    </style>
+
+    <style name="DetailViewDescriptionField" parent="DetailViewContentField">
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginStart">24dp</item>
+    </style>
+
+
+</resources>

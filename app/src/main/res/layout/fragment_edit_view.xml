@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="editViewModel"
+            type="com.akdogan.simpledivelog.application.editview.EditViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="0dp"
+        tools:context=".application.editview.EditViewFragment">
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/edit_view_upload_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:showAnimationBehavior="none"
+            app:hideAnimationBehavior="none"
+            android:visibility="invisible"
+            android:layout_gravity="center"
+            android:progress="70"
+            android:indeterminate="true"
+            style="@style/Widget.MaterialComponents.LinearProgressIndicator"
+            />
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/edit_view_progress_circular"
+            style="@style/Widget.MaterialComponents.CircularProgressIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:progress="70"
+            android:visibility="visible"
+            app:hideAnimationBehavior="none"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:showAnimationBehavior="none" />
+
+        <ScrollView
+            android:id="@+id/edit_view_main_content"
+            android:visibility="invisible"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/button_save"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/dive_number"
+                    style="@style/Widget.SimpleDiveLog.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Dive Number*"
+                    app:helperText="*Required"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@={editViewModel.diveNumberInput}"
+                        android:imeOptions="actionGo"
+                        android:inputType="number" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/dive_date"
+                    style="@style/Widget.SimpleDiveLog.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Select Date*"
+                    app:helperText="*Required"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dive_number">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/dive_date_edit"
+                        android:text="@{editViewModel.liveDateString}"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/dive_duration"
+                    style="@style/Widget.SimpleDiveLog.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Dive Duration (minutes)*"
+                    app:helperText="*Required"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dive_date">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/dive_duration_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@={editViewModel.diveDurationInput}"
+                        android:imeOptions="actionGo"
+                        android:inputType="number" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/max_depth"
+                    style="@style/Widget.SimpleDiveLog.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Maximum Depth (feet)*"
+                    app:helperText="*Required"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dive_duration">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@={editViewModel.maxDepthInput}"
+                        android:imeOptions="actionGo"
+                        android:inputType="number" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/dive_location"
+                    style="@style/Widget.SimpleDiveLog.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Location*"
+                    app:helperText="*Required"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/max_depth">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@={editViewModel.locationInput}"
+                        android:imeOptions="actionGo"
+                        android:inputType="text" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/weight"
+                    style="@style/Widget.SimpleDiveLog.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Weight used (lbs)"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dive_location">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@={editViewModel.weightInput}"
+                        android:imeOptions="actionGo"
+                        android:inputType="number" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/air_in"
+                    style="@style/Widget.SimpleDiveLog.TextInputLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:hint="Air in (PSI)"
+                    android:layout_marginEnd="@dimen/text_input_fields_margin"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/air_out"
+                    app:layout_constraintTop_toBottomOf="@id/weight"
+                    >
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@={editViewModel.airInInput}"
+                        android:imeOptions="actionGo"
+                        android:inputType="number"
+                        android:nextFocusDown="@id/air_out_content"/>
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/air_out"
+                    style="@style/Widget.SimpleDiveLog.TextInputLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/text_input_fields_margin"
+                    android:hint="Air Out (PSI)"
+                    app:layout_constraintTop_toBottomOf="@id/weight"
+                    app:layout_constraintStart_toEndOf="@id/air_in"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/air_out_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@={editViewModel.airOutInput}"
+                        android:imeOptions="actionGo"
+                        android:inputType="number" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/comment"
+                    style="@style/Widget.SimpleDiveLog.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Notes and Comments"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/air_in">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@={editViewModel.notesInput}"
+
+                        android:inputType="textMultiLine" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </ScrollView>
+
+
+        <Button
+            android:id="@+id/button_save"
+            android:layout_width="match_parent"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="0dp"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> editViewModel.onSaveButtonPressed()}"
+            android:text="SAVE"
+            android:enabled="false"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+        </Button>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

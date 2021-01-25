@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="detailViewModel"
+            type="com.akdogan.simpledivelog.application.detailview.DetailViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/detail_view_progress_circular"
+            style="@style/Widget.MaterialComponents.CircularProgressIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:progress="70"
+            android:visibility="visible"
+            app:hideAnimationBehavior="none"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:showAnimationBehavior="none" />
+
+        <ScrollView
+            android:id="@+id/detail_view_main_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/dive_number_description"
+                    style="@style/DetailViewDescriptionField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dive Number:"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/dive_number_content"
+                    style="@style/DetailViewContentField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    app:diveNumberFormatted="@{detailViewModel.diveLogEntry}"
+                    app:layout_constraintBaseline_toBaselineOf="@id/dive_number_description"
+                    app:layout_constraintStart_toEndOf="@+id/dive_max_depth_description"
+                    tools:text="#34" />
+
+                <TextView
+                    android:id="@+id/dive_location_description"
+                    style="@style/DetailViewDescriptionField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Location:"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dive_number_description" />
+
+                <TextView
+                    android:id="@+id/dive_location_content"
+                    style="@style/DetailViewContentField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{detailViewModel.diveLogEntry.diveLocation}"
+                    app:layout_constraintBaseline_toBaselineOf="@id/dive_location_description"
+                    app:layout_constraintStart_toStartOf="@+id/dive_number_content"
+                    tools:text="Egypt" />
+
+                <TextView
+                    android:id="@+id/dive_duration_description"
+                    style="@style/DetailViewDescriptionField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Duration:"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dive_location_description" />
+
+                <TextView
+                    android:id="@+id/dive_duration_content"
+                    style="@style/DetailViewContentField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:diveDurationFormatted="@{detailViewModel.diveLogEntry}"
+                    app:layout_constraintBaseline_toBaselineOf="@id/dive_duration_description"
+                    app:layout_constraintStart_toStartOf="@+id/dive_location_content"
+                    tools:text="45 min" />
+
+                <TextView
+                    android:id="@+id/dive_max_depth_description"
+                    style="@style/DetailViewDescriptionField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Maximum Depth:"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dive_duration_description" />
+
+                <TextView
+                    style="@style/DetailViewContentField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBaseline_toBaselineOf="@id/dive_max_depth_description"
+                    app:layout_constraintStart_toStartOf="@+id/dive_duration_content"
+                    app:maxDepthFormatted="@{detailViewModel.diveLogEntry}"
+                    tools:text="30 meter" />
+
+                <TextView
+                    android:id="@+id/dive_date_description"
+                    style="@style/DetailViewDescriptionField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Date:"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dive_max_depth_description" />
+
+                <TextView
+                    style="@style/DetailViewContentField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:dateFormatted="@{detailViewModel.diveLogEntry}"
+                    app:layout_constraintBaseline_toBaselineOf="@id/dive_date_description"
+                    app:layout_constraintStart_toStartOf="@+id/dive_duration_content"
+                    tools:text="01. Jan 2020" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </ScrollView>
+
+        <Button
+            android:id="@+id/edit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EDIT"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

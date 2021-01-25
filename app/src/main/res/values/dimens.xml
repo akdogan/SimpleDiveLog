@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="fab_margin">24dp</dimen>
+    <dimen name="text_input_fields_margin">16dp</dimen>
+</resources>
