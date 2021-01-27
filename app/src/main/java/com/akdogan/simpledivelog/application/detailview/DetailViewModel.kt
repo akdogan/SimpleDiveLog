@@ -18,14 +18,12 @@ package com.akdogan.simpledivelog.application.detailview
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
 import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import kotlinx.coroutines.launch
 
 
 class DetailViewModel(
-    val database: DiveLogDatabaseDao,
     application: Application,
     val diveLogId: String
 ) : AndroidViewModel(application) {
@@ -36,7 +34,7 @@ class DetailViewModel(
 
     val apiError = Repository.apiError
 
-    val repositoryApiStatus = Repository.repositoryApiStatus
+    val repositoryApiStatus = Repository.downloadStatus
 
     private val _makeToast = MutableLiveData<String>()
     val makeToast: LiveData<String>
@@ -58,7 +56,6 @@ class DetailViewModel(
                 onNavigateBack()
             } else {
                 _diveLogEntry.value = item
-                onMakeToast("Element found: #${item.diveNumber}")
             }
         }
     }
@@ -71,7 +68,7 @@ class DetailViewModel(
         _makeToast.value = null
     }
 
-    fun onNavigateBack() {
+    private fun onNavigateBack() {
         _navigateBack.value = true
     }
 

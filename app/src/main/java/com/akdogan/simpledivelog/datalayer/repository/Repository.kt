@@ -1,6 +1,10 @@
 package com.akdogan.simpledivelog.datalayer.repository
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -18,67 +22,108 @@ import java.lang.Exception
 
 object Repository {
     // TODO Exceptions auf sealed class fehlertypen mappen
+
+    private val networkCallback: ConnectivityManager.NetworkCallback =
+        object : ConnectivityManager.NetworkCallback() {
+
+            override fun onLost(network: Network) {
+                Log.i("NETWORKING", "Network LOST: ${network.networkHandle}")
+                _networkAvailable.postValue(false)
+                super.onLost(network)
+            }
+
+            override fun onCapabilitiesChanged(nw: Network, caps: NetworkCapabilities) {
+                if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                    Log.i("NETWORKING", "Capability validated for ${nw.networkHandle}")
+                    _networkAvailable.postValue(true)
+                }
+                super.onCapabilitiesChanged(nw, caps)
+            }
+        }
+
+    private val _networkAvailable = MutableLiveData<Boolean>()
+    val networkAvailable: LiveData<Boolean>
+        get() = _networkAvailable
+
     private val _apiError = MutableLiveData<Exception>()
-    val apiError : LiveData<Exception>
+    val apiError: LiveData<Exception>
         get() = _apiError
 
-    private var _listOfDives : LiveData<List<DatabaseDiveLogEntry>> = liveData { emit(emptyList()) }
+    private var _listOfDives: LiveData<List<DatabaseDiveLogEntry>> =
+        liveData { emit(emptyList<DatabaseDiveLogEntry>()) }
     val listOfDives: LiveData<List<DiveLogEntry>>
         get() = Transformations.map(_listOfDives) { list: List<DatabaseDiveLogEntry>? ->
             list?.asDomainModel() ?: emptyList()
         }
 
-    lateinit var database: DiveLogDatabaseDao
+    private lateinit var database: DiveLogDatabaseDao
 
-    private val _repositoryApiStatus = MutableLiveData<RepositoryApiStatus>()
-    val repositoryApiStatus: LiveData<RepositoryApiStatus>
-        get() = _repositoryApiStatus
+    private val _downloadApiStatus = MutableLiveData<RepositoryDownloadStatus>()
+    val downloadStatus: LiveData<RepositoryDownloadStatus>
+        get() = _downloadApiStatus
+
+    private val _uploadApiStatus = MutableLiveData<RepositoryUploadProgressStatus>()
+    val uploadApiStatus: LiveData<RepositoryUploadProgressStatus>
+        get() = _uploadApiStatus
+
 
     // Called from the MainActivity to setup the database
-    suspend fun setup(context: Context) {
+    suspend fun setup(
+        context: Context,
+    ) {
         onFetching()
         database = DiveLogDatabase.getInstance(context).diveLogDatabaseDao
         _listOfDives = database.getAllEntriesAsLiveData()
         fetchDives()
+        CloudinaryApi.setup(context)
     }
 
-    suspend fun forceUpdate(){
+    fun registerNetworkCallback(systemService: ConnectivityManager) {
+        systemService.registerDefaultNetworkCallback(networkCallback)
+    }
+
+    fun unregisterNetworkCallback(systemService: ConnectivityManager) {
+        systemService.unregisterNetworkCallback(networkCallback)
+    }
+
+    suspend fun forceUpdate() {
         fetchDives()
     }
 
-    fun getLatestDiveNumber(): Int{
-        return _listOfDives.value?.maxBy { it.diveNumber }?.diveNumber ?: 0
+    fun getLatestDiveNumber(): Int {
+        return _listOfDives.value?.maxByOrNull { it.diveNumber }?.diveNumber ?: 0
     }
 
-    private fun onFetching() { _repositoryApiStatus.value = RepositoryApiStatus.FETCHING }
+    private fun onFetching() {
+        _downloadApiStatus.value = RepositoryDownloadStatus.FETCHING
+    }
 
     // TODO Not sure if its a problem that the status stays on Error
     private fun onFetchingDone() {
-        if (_repositoryApiStatus.value == RepositoryApiStatus.FETCHING) {
-            _repositoryApiStatus.value = RepositoryApiStatus.DONE
+        if (_downloadApiStatus.value == RepositoryDownloadStatus.FETCHING) {
+            _downloadApiStatus.value = RepositoryDownloadStatus.DONE
         }
     }
 
-    // TODO ?? Maybe better to split fetching from remote and fetching from database into separate functions?
     private suspend fun fetchDives() {
         onFetching()
         try {
             val list = DiveLogApi.retrofitService.getDives()
             database.deleteAll()
             database.insertAll(list.asDatabaseModel())
-        } catch (e: Exception){
+        } catch (e: Exception) {
             onErrorOccured(e)
         }
         onFetchingDone()
     }
 
-    // TODO ?? Does this make sense? Item gets fetched from database. If it does not exist, it gets
-    // Fetched from remote into the database. Then tried again
-    suspend fun getSingleDive(diveId: String): DiveLogEntry?{
+
+    // Fetched from remote into the database, then fetched from database
+    suspend fun getSingleDive(diveId: String): DiveLogEntry? {
         onFetching()
         delay(1000)
         var entry = getSingleDiveFromDataBase(diveId)
-        if (entry == null){
+        if (entry == null) {
             getSingleDiveFromRemote(diveId)
             entry = getSingleDiveFromDataBase(diveId)
         }
@@ -86,21 +131,83 @@ object Repository {
         return entry
     }
 
-    suspend fun uploadSingleDive(entry: DiveLogEntry){
-        onFetching()
+    suspend fun uploadSingleDive(entry: DiveLogEntry) {
+        uploadStart()
         createDiveRemote(entry)
         forceUpdate()
-        onFetchingDone()
+        uploadDone()
     }
 
-    suspend fun updateSingleDive(entry: DiveLogEntry){
-        onFetching()
+    suspend fun updateSingleDive(entry: DiveLogEntry) {
+        uploadStart()
         updateDiveRemote(entry)
         getSingleDiveFromRemote(entry.dataBaseId)
-        onFetchingDone()
+        uploadDone()
     }
 
-    private suspend fun updateDiveRemote(entry: DiveLogEntry){
+    fun startPictureUpload(uri: Uri, cb: ClUploaderCallback) {
+        uploadStart()
+        CloudinaryApi.uploadPicture(
+            uri,
+            object : ClUploaderCallback() {
+                override fun clOnStart() {
+                    Log.i("UPLOADSTATUS", "OnStartCalled")
+                    //uploadStart()
+                    cb.clOnStart()
+                }
+
+                override fun clOnError() {
+                    mediaUploadDone()
+                    cb.clOnError()
+                }
+
+                override fun clOnSuccess(result: String?) {
+                    mediaUploadDone()
+                    Log.i("UPLOADSTATUS", "OnSuccessCalled")
+                    cb.clOnSuccess(result)
+                }
+
+                override fun clOnReschedule() {
+                    mediaUploadDone()
+                    cb.clOnReschedule()
+                }
+                override fun clOnProgress(bytes: Long, totalBytes: Long) {
+                    mediaUploadProgress(bytes, totalBytes)
+                    cb.clOnProgress(bytes, totalBytes)
+                }
+            })
+    }
+
+
+
+    private fun uploadStart(){
+        _uploadApiStatus.value = RepositoryUploadProgressStatus(
+            status = RepositoryUploadStatus.INDETERMINATE_UPLOAD
+        )
+    }
+    private fun mediaUploadProgress(progress: Long, total: Long){
+        _uploadApiStatus.value = RepositoryUploadProgressStatus(
+            status = RepositoryUploadStatus.PROGRESS_UPLOAD,
+            progress = progress,
+            total = total
+        )
+    }
+    private fun mediaUploadDone(){
+        _uploadApiStatus.value = RepositoryUploadProgressStatus(
+            status = RepositoryUploadStatus.INDETERMINATE_UPLOAD,
+            progress = 0,
+            total = 0
+        )
+        Log.i("UPLOADSTATUS", "MediaUploadCleared")
+    }
+
+    private fun uploadDone(){
+        _uploadApiStatus.value = RepositoryUploadProgressStatus(
+            status = RepositoryUploadStatus.DONE
+        )
+    }
+
+    private suspend fun updateDiveRemote(entry: DiveLogEntry) {
         try {
             DiveLogApi.retrofitService.updateDive(entry.asNetworkModel())
         } catch (e: Exception) {
@@ -109,7 +216,7 @@ object Repository {
     }
 
     // Creates a single dive on the server. API does not respond the id, so all entities need to be refetched
-    private suspend fun createDiveRemote(entry: DiveLogEntry){
+    private suspend fun createDiveRemote(entry: DiveLogEntry) {
         try {
             DiveLogApi.retrofitService.createDive(entry.asNetworkModel())
         } catch (e: Exception) {
@@ -119,54 +226,53 @@ object Repository {
 
 
     // Tries to fetch a single dive from remote and puts in the cache. Should be followed by getSingleDiveFromDatabase
-    private suspend fun getSingleDiveFromRemote(diveId: String){
+    private suspend fun getSingleDiveFromRemote(diveId: String) {
         try {
-            var networkEntry = DiveLogApi.retrofitService.getSingleDive(diveId)
-            if (database.checkIfEntryExists(networkEntry.dataBaseId) == 1)
-            {
+            val networkEntry = DiveLogApi.retrofitService.getSingleDive(diveId)
+            if (database.checkIfEntryExists(networkEntry.dataBaseId) == 1) {
                 database.update(networkEntry.asDataBaseModel())
             } else {
                 database.insert(networkEntry.asDataBaseModel())
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             onErrorOccured(e)
             Log.i("DATABASE", e.toString())
         }
     }
 
     // Tries to fetch a single dive from the cache and returns it, or returns null if no such element exists
-    private suspend fun getSingleDiveFromDataBase(diveId: String): DiveLogEntry?{
+    private suspend fun getSingleDiveFromDataBase(diveId: String): DiveLogEntry? {
         val entry = database.get(diveId)
         return entry?.asDomainModel()
     }
 
-    //TODO ?? Delete on server and update all data OR delete on server and in cache, no update?
-    suspend fun deleteDive(diveId: String){
+
+    suspend fun deleteDive(diveId: String) {
         onFetching()
         try {
             DiveLogApi.retrofitService.delete(diveId)
             fetchDives()
-        } catch (e: Exception){
+        } catch (e: Exception) {
             onErrorOccured(e)
         }
         onFetchingDone()
     }
 
-    //TODO ?? Delete on server and update all data OR delete on server and in cache, no update?
-    suspend fun deleteAll(){
+
+    suspend fun deleteAll() {
         onFetching()
         try {
             DiveLogApi.retrofitService.deleteAll()
             fetchDives()
-        } catch (e: Exception){
+        } catch (e: Exception) {
             onErrorOccured(e)
         }
         onFetchingDone()
     }
 
-    private fun onErrorOccured(e: Exception){
+    private fun onErrorOccured(e: Exception) {
         _apiError.value = e
-        _repositoryApiStatus.value = RepositoryApiStatus.ERROR
+        _downloadApiStatus.value = RepositoryDownloadStatus.ERROR
     }
 
     fun onErrorDone() {
@@ -177,8 +283,43 @@ object Repository {
 }
 
 // Todo Maybe find better way with nested enum or sealed class / Api status object with status enum and error enum
-enum class RepositoryApiStatus {
+enum class RepositoryDownloadStatus {
     FETCHING,
     DONE,
     ERROR
+}
+
+enum class RepositoryUploadStatus {
+    INDETERMINATE_UPLOAD,
+    PROGRESS_UPLOAD,
+    DONE
+}
+
+
+data class RepositoryUploadProgressStatus(
+    val status: RepositoryUploadStatus = RepositoryUploadStatus.DONE,
+    val progress: Long = 0L,
+    val total: Long = 0L,
+) {
+    val percentage: Int
+        get() {
+            return if (total > 0) {
+                (progress.toInt() / (total.toInt() / 100))
+            } else {
+                0
+            }
+        }
+}
+
+abstract class ClUploaderCallback {
+    open fun clOnSuccess(result: String?) {}
+
+    open fun clOnProgress(bytes: Long, totalBytes: Long) {}
+
+    open fun clOnReschedule() {}
+
+    open fun clOnError() {}
+
+    open fun clOnStart() {}
+
 }

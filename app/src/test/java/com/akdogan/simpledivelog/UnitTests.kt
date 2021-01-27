@@ -3,6 +3,7 @@ package com.akdogan.simpledivelog
 import com.akdogan.simpledivelog.diveutil.getRandomDateLaterThan
 import com.akdogan.simpledivelog.diveutil.getSampleData
 import com.akdogan.simpledivelog.application.editview.toStringOrNull
+import com.akdogan.simpledivelog.datalayer.network.getThumbnailFromImageUrl
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -12,8 +13,22 @@ import org.junit.Assert.*
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class ExampleUnitTest {
+class UnitTests {
+    @Test
+    fun testUrlToThumbnailUrl(){
+        val url = "https://res.cloudinary.com/dcftx5e2/image/upload/v1611676840/mmwbc83tydbbeqq5vbvy.jpg"
+        val expected = "https://res.cloudinary.com/dcftx5e2/image/upload/c_thumb,g_auto:classic,ar_1:1,w_200/v1611676840/mmwbc83tydbbeqq5vbvy.jpg"
+        val result = getThumbnailFromImageUrl(url)
+        assertEquals(expected, result)
+    }
 
+    @Test
+    fun testUrlToThumbnailUrlInvalid(){
+        val url = "https://google.de"
+        val expected = null
+        val result = getThumbnailFromImageUrl(url)
+        assertEquals(expected, result)
+    }
 
     @Test
     fun testRandomDate() {

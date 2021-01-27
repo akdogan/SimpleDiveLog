@@ -19,7 +19,6 @@ package com.akdogan.simpledivelog.application.detailview
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
 
 /**
  * This is pretty much boiler plate code for a ViewModel Factory.
@@ -27,14 +26,13 @@ import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
  * Provides the SleepDatabaseDao and context to the ViewModel.
  */
 class DetailViewModelFactory(
-    private val dataSource: DiveLogDatabaseDao,
     private val application: Application,
     private val diveLogId: String
 ) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
-            return DetailViewModel(dataSource, application, diveLogId) as T
+            return DetailViewModel(application, diveLogId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

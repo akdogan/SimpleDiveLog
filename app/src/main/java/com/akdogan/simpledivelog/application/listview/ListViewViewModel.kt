@@ -18,31 +18,21 @@ package com.akdogan.simpledivelog.application.listview
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import com.akdogan.simpledivelog.diveutil.getSampleData
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
-const val TAG = "ListViewViewModel"
-// TODO W/View: requestLayout() improperly called by StatusBarIconView(slot=mobile icon=null notification=null) during layout: running second layout pass
-/**
- * ViewModel for SleepTrackerFragment.
- */
+
 class ListViewViewModel(
-    val database: DiveLogDatabaseDao,
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val errorsFlow = MutableStateFlow<Exception?>(null)
-    val errors: Flow<Exception> = errorsFlow.filterNotNull()
+    /*private val errorsFlow = MutableStateFlow<Exception?>(null)
+    val errors: Flow<Exception> = errorsFlow.filterNotNull()*/
 
     val apiError = Repository.apiError
 
-    val repositoryApiStatus = Repository.repositoryApiStatus
+    val repositoryApiStatus = Repository.downloadStatus
 
     val listOfLogEntries = Repository.listOfDives
 
@@ -82,7 +72,7 @@ class ListViewViewModel(
             }
             onMakeToast("Sample Data Created")
 
-            errorsFlow.value = Exception("erag")
+            //errorsFlow.value = Exception("erag")
         }
     }
 
@@ -95,7 +85,7 @@ class ListViewViewModel(
         _navigateToDetailView.value = null
     }
 
-    fun onMakeToast(message: String) {
+    private fun onMakeToast(message: String) {
         _makeToast.value = message
     }
 

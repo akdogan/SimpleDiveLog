@@ -38,7 +38,10 @@ data class DatabaseDiveLogEntry(
     var comment: String? = null,
 
     @ColumnInfo(name = "notes")
-    var notes: String? = null
+    var notes: String? = null,
+
+    @ColumnInfo(name = "imgSrc")
+    var imgUrl: String? = null
 )
 fun DatabaseDiveLogEntry.asDomainModel(): DiveLogEntry {
     return DiveLogEntry(
@@ -51,7 +54,8 @@ fun DatabaseDiveLogEntry.asDomainModel(): DiveLogEntry {
         weight = this.weight, // stored in Pound
         airIn = this.airIn, // stored in PSI
         airOut = this.airOut, // stored in PSI
-        notes = this.notes
+        notes = this.notes,
+        imgUrl = imgUrl
     )
 }
 

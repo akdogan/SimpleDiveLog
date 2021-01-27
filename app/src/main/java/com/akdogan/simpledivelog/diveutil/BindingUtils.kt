@@ -31,9 +31,11 @@ fun TextView.maxDepthFormatted(item: DiveLogEntry?) {
 @BindingAdapter("dateFormatted")
 fun TextView.dateFormatted(item: DiveLogEntry?){
     item?.let{
-        this.text = "${DateFormat.getDateInstance().format(item.diveDate)}"
+        this.text = DateFormat.getDateInstance().format(item.diveDate)
     }
 }
+
+
 
 
 

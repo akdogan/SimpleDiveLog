@@ -40,9 +40,6 @@ interface DiveLogDatabaseDao {
     @Query("SELECT MAX(dive_number) from dive_log_table")
     suspend fun getLatestDiveNumber(): Int?
 
-    // mark for removal
-    @Query("SELECT * from dive_log_table ORDER BY dive_number DESC")
-    suspend fun getAllEntriesAsList(): List<DatabaseDiveLogEntry>
 
     // mark for removal
     @Query("SELECT COUNT (*) from dive_log_table")

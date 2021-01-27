@@ -1,35 +1,38 @@
 package com.akdogan.simpledivelog.application.listview
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.akdogan.simpledivelog.R
+import com.akdogan.simpledivelog.databinding.ListEntryViewBinding
+import com.akdogan.simpledivelog.datalayer.network.getThumbnailFromImageUrl
 import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 
 
 class ListViewAdapter(
-    //val clickListener: DiveLogEntryListener,
     val myItemClickListener: (id: String) -> Unit
-): RecyclerView.Adapter<ListViewAdapter.ListItemViewHolder>() {
+) : RecyclerView.Adapter<ListViewAdapter.ListItemViewHolder>() {
     var dataSet = listOf<DiveLogEntry>()
         set(value) {
             field = value
             notifyDataSetChanged()
         }
 
-    class ListItemViewHolder(private val view: View) : RecyclerView.ViewHolder(view){
-        val itemLocationTextField = view.findViewById<TextView>(R.id.list_item_location)
-        val itemMaxDepthTextField = view.findViewById<TextView>(R.id.list_item_max_depth)
-        val itemDiveDuration = view.findViewById<TextView>(R.id.list_item_dive_duration)
+    class ListItemViewHolder(val binding: ListEntryViewBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        val itemLocationTextField = binding.listItemLocation
+        val itemMaxDepthTextField = binding.listItemMaxDepth
+        val itemDiveDuration = binding.listItemDiveDuration
 
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ListItemViewHolder {
-        val adapterLayout = LayoutInflater.from(parent.context)
-            .inflate(R.layout.list_entry_view, parent, false)
-        return ListItemViewHolder(adapterLayout)
+        val binding =
+            ListEntryViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ListItemViewHolder(binding)
     }
 
     override fun getItemCount(): Int {
@@ -38,27 +41,28 @@ class ListViewAdapter(
 
     override fun onBindViewHolder(holder: ListItemViewHolder, position: Int) {
         val item = dataSet[position]
+        holder.binding.currentItem = item
         val res = holder.itemView.context.resources
         val diveNumber = res.getString(R.string.list_entry_dive_number, item.diveNumber)
         val location = res.getString(R.string.list_entry_dive_location, item.diveLocation)
-        //holder.bind(item)
-        //holder.itemDiveNumberTextField.text = res.getString(R.string.list_entry_dive_number, item.diveNumber) //item.diveNumber.toString()
         holder.itemLocationTextField.text = "$diveNumber $location"
         holder.itemMaxDepthTextField.text = res.getString(R.string.list_entry_max_depth, item.maxDepth)
         holder.itemDiveDuration.text = res.getString(R.string.list_entry_dive_duration, item.diveDuration)
-        holder.itemView.setOnClickListener{
+        holder.itemView.setOnClickListener {
             myItemClickListener(item.dataBaseId)
         }
-
+        Glide.with(holder.binding.listItemThumbnail)
+            .load(getThumbnailFromImageUrl(item.imgUrl)?.toUri())
+            .apply(
+                RequestOptions()
+                    .placeholder(R.drawable.loading_animation)
+                    .fallback(R.drawable.ic_diver)
+                    .error(R.drawable.ic_baseline_no_photography_24)
+            )
+            .into(holder.binding.listItemThumbnail)
     }
 
-    fun getDatabaseIdAtPosition(pos: Int): String{
-        val id = dataSet[pos].dataBaseId
-        return id
+    fun getDatabaseIdAtPosition(pos: Int): String {
+        return dataSet[pos].dataBaseId
     }
-}
-// ItemCLicklistener defined, but i just passed it from viewModel to adapter via the fragment
-class DiveLogEntryListener(val clickListener: (remoteId: String) -> Unit){
-    fun onClick(item: DiveLogEntry) = clickListener(item.dataBaseId)
-
 }

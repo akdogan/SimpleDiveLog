@@ -19,7 +19,6 @@ package com.akdogan.simpledivelog.application.listview
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
 
 /**
  * This is pretty much boiler plate code for a ViewModel Factory.
@@ -27,12 +26,11 @@ import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
  * Provides the SleepDatabaseDao and context to the ViewModel.
  */
 class ListViewViewModelFactory(
-        private val dataSource: DiveLogDatabaseDao,
         private val application: Application) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ListViewViewModel::class.java)) {
-            return ListViewViewModel(dataSource, application) as T
+            return ListViewViewModel(application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

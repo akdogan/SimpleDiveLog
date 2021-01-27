@@ -33,7 +33,7 @@ fun getRandomDateLaterThan(date: Long): Long{
 }
 
 fun getRandomLocation(): String{
-    val list = listOf<String>(
+    val list = listOf(
         "Ägypten",
         "Plötze",
         "Badewanne",

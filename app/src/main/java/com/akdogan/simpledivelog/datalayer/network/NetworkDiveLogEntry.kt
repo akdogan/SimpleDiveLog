@@ -14,7 +14,8 @@ data class NetworkDiveLogEntry(
     val weight: Int? = null, // stored in Pound
     val airIn: Int? = null, // stored in PSI
     val airOut: Int? = null, // stored in PSI
-    val notes: String? = null
+    val notes: String? = null,
+    val imgUrl: String? = null,
 )
 
 fun NetworkDiveLogEntry.asDataBaseModel(): DatabaseDiveLogEntry {
@@ -28,7 +29,8 @@ fun NetworkDiveLogEntry.asDataBaseModel(): DatabaseDiveLogEntry {
         weight = this.weight, // stored in Pound
         airIn = this.airIn, // stored in PSI
         airOut = this.airOut, // stored in PSI
-        notes = this.notes
+        notes = this.notes,
+        imgUrl = imgUrl
     )
 }
 
@@ -49,6 +51,7 @@ fun DiveLogEntry.asNetworkModel(): NetworkDiveLogEntry {
         weight = this.weight, // stored in Pound
         airIn = this.airIn, // stored in PSI
         airOut = this.airOut, // stored in PSI
-        notes = this.notes
+        notes = this.notes,
+        imgUrl = imgUrl
     )
 }

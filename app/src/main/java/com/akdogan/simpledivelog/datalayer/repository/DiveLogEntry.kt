@@ -29,6 +29,7 @@ data class DiveLogEntry(
         val weight: Int? = null, // stored in Pound
         val airIn: Int? = null, // stored in PSI
         val airOut: Int? = null, // stored in PSI
-        val notes: String? = null
+        val notes: String? = null,
+        val imgUrl: String? = null
 )
 

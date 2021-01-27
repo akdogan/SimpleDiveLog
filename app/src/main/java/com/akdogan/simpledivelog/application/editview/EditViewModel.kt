@@ -18,29 +18,65 @@ package com.akdogan.simpledivelog.application.editview
 
 import android.app.Application
 import android.icu.text.DateFormat
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.*
-import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
-import com.akdogan.simpledivelog.diveutil.ActWithString
+import com.akdogan.simpledivelog.datalayer.repository.ClUploaderCallback
 import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.repository.Repository
+import com.akdogan.simpledivelog.diveutil.ActWithString
 import kotlinx.coroutines.launch
-import java.lang.Exception
 
+class EditViewModelFactory(
+    private val application: Application,
+    private val entryId: String?
+
+) : ViewModelProvider.Factory {
+    @Suppress("unchecked_cast")
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(EditViewModel::class.java)) {
+            return EditViewModel(application, entryId) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
 
 
 class EditViewModel(
-    val database: DiveLogDatabaseDao,
     application: Application,
     entryId: String?
     // TODO Bleibt hängen wenn keine Internetverbindung
 ) : AndroidViewModel(application) {
+    var contentUri: Uri? = null
+        set(value) {
+            if (value != null){
+                imgUrl = null
+                remoteImgUrl = null
+            }
+            field = value
+        }
+
+    private var imgUrl: String? = null
+
+    var remoteImgUrl: String? = null
+        private set
+
+    private val _loadRemotePicture = MutableLiveData<Boolean>()
+    val loadRemotePicture : LiveData<Boolean>
+        get() = _loadRemotePicture
+
+    var networkAvailable = Repository.networkAvailable
+
+
     private val createNewEntry: Boolean = entryId == null
 
     private var entry: DiveLogEntry? = null
 
     val apiError = Repository.apiError
 
-    val repositoryApiStatus = Repository.repositoryApiStatus
+    val downloadStatus = Repository.downloadStatus
+
+    val uploadStatus = Repository.uploadApiStatus
 
     private val _navigateBack = MutableLiveData<ActWithString>()
     val navigateBack: LiveData<ActWithString>
@@ -87,6 +123,7 @@ class EditViewModel(
         addSource(maxDepth) { value = checkEnableSaveButton() }
         addSource(locationInput) { value = checkEnableSaveButton() }
         addSource(savingInProgress) { value = checkEnableSaveButton() }
+        addSource(networkAvailable) { value = checkEnableSaveButton()}
     }
 
     init {
@@ -124,6 +161,11 @@ class EditViewModel(
             airInInput.value = it.airIn.toStringOrNull()
             airOutInput.value = it.airOut.toStringOrNull()
             notesInput.value = it.notes
+            imgUrl = it.imgUrl // ???
+            remoteImgUrl = it.imgUrl
+        }
+        if (remoteImgUrl != null){
+            _loadRemotePicture.value = true
         }
     }
 
@@ -133,34 +175,62 @@ class EditViewModel(
                 diveDuration.value != null &&
                 maxDepth.value != null &&
                 !locationInput.value.isNullOrBlank() &&
-                _savingInProgress.value != true
+                _savingInProgress.value != true &&
+                networkAvailable.value == true
     }
 
     private fun putEntry(newEntry: DiveLogEntry) {
         var navigateBackWithString: String? = null
         viewModelScope.launch {
-
+            Log.i("CREATE ENTRY TRACING", "create new entry: $createNewEntry")
             if (createNewEntry) {
+                Log.i("CREATE ENTRY TRACING", "create new entry branch entered")
                 Repository.uploadSingleDive(newEntry)
             } else {
                 Repository.updateSingleDive(newEntry)
+                Log.i("CREATE ENTRY TRACING", "navigate back with ${newEntry.dataBaseId}")
                 navigateBackWithString = newEntry.dataBaseId
             }
-
+            onNavigateBack(navigateBackWithString)
         }
-        onNavigateBack(navigateBackWithString)
+
     }
 
     fun onSaveButtonPressed() {
         if (checkEnableSaveButton()) {
             _savingInProgress.value = true
-            try {
-                var newEntry = createEntry()
-                putEntry(newEntry)
-            } catch (e: IllegalArgumentException) {
-                onMakeToast("Try create entry catch block called with $e")
-            }
-            _savingInProgress.value = false
+            startImageUpload()
+        }
+    }
+
+    private fun startEntryUpload() {
+        try {
+            val newEntry = createEntry()
+            putEntry(newEntry)
+        } catch (e: IllegalArgumentException) {
+            onMakeToast("Try create entry catch block called with $e")
+        }
+        _savingInProgress.value = false
+    }
+
+    private fun startImageUpload() {
+        val uri = contentUri
+        if (uri != null) {
+            Repository.startPictureUpload(
+                uri,
+                object : ClUploaderCallback() {
+                    override fun clOnSuccess(result: String?) {
+                        imgUrl = result
+                        startEntryUpload()
+                    }
+                    override fun clOnError() = startEntryUpload()
+                    override fun clOnReschedule() = startEntryUpload()
+                }
+            )
+            Log.i("UPLOAD TRACING", "post upload Picture call")
+        } else {
+            // Continue with the regular upload if the contentUri is null
+            startEntryUpload()
         }
     }
 
@@ -177,13 +247,15 @@ class EditViewModel(
             weightInput.value?.toIntOrNull(),
             airInInput.value?.toIntOrNull(),
             airOutInput.value?.toIntOrNull(),
-            notesInput.value
+            notesInput.value,
+            imgUrl
         )
         onMakeToast("New Entry Created")
         return result
     }
 
     private fun onNavigateBack(diveId: String?) {
+        Log.i("CREATE ENTRY TRACING", "onNavigateBack: $diveId")
         _navigateBack.value = ActWithString(true, diveId)
     }
 
@@ -195,7 +267,7 @@ class EditViewModel(
         _liveDate.value = timeInMillis
     }
 
-    fun onMakeToast(message: String) {
+    private fun onMakeToast(message: String) {
         _makeToast.value = message
     }
 
@@ -211,9 +283,5 @@ class EditViewModel(
 }
 
 fun Int?.toStringOrNull(): String? {
-    return if (this == null) {
-        null
-    } else {
-        this.toString()
-    }
+    return this?.toString()
 }

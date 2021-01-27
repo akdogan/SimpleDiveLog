@@ -8,15 +8,27 @@
         </item> <!-- Premade set, see https://material.io/develop/android/theming/typography for more -->
     </style>
 
+    <style name="Widget.SimpleDiveLog.LinearProgressIndicator" parent="Widget.MaterialComponents.LinearProgressIndicator">
+        <item name="indicatorColor">?attr/colorSecondary</item>
+
+    </style>
+
+
     <style name="DetailViewContentField" parent="Widget.AppCompat.TextView">
         <item name="android:textSize">18sp</item>
-
         <item name="android:layout_marginTop">24dp</item>
     </style>
 
     <style name="DetailViewDescriptionField" parent="DetailViewContentField">
         <item name="android:textStyle">bold</item>
         <item name="android:layout_marginStart">24dp</item>
+    </style>
+
+    <style name="Theme.AppCompat.Light.NoActionBar.FullScreen" parent="@style/Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
     </style>
 
 

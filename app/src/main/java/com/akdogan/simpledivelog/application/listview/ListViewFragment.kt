@@ -9,30 +9,22 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.akdogan.simpledivelog.R
-import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabase
 import com.akdogan.simpledivelog.databinding.FragmentListViewBinding
-import com.akdogan.simpledivelog.datalayer.repository.RepositoryApiStatus
-import com.akdogan.simpledivelog.diveutil.ActWithString
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 class ListViewFragment : Fragment() {
-    var t: Toast? = null
-    lateinit var mSwipeRefreshLayout: SwipeRefreshLayout
+    private var t: Toast? = null
+    private lateinit var mSwipeRefreshLayout: SwipeRefreshLayout
     lateinit var listViewModel: ListViewViewModel
     lateinit var adapter: ListViewAdapter
     override fun onCreateView(
@@ -43,8 +35,7 @@ class ListViewFragment : Fragment() {
         val binding: FragmentListViewBinding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_list_view, container, false)
         val application = requireNotNull(this.activity).application
-        val datasource = DiveLogDatabase.getInstance(application).diveLogDatabaseDao
-        val viewModelFactory = ListViewViewModelFactory(datasource, application)
+        val viewModelFactory = ListViewViewModelFactory(application)
         listViewModel = ViewModelProvider(this, viewModelFactory).get(ListViewViewModel::class.java)
         binding.lifecycleOwner = this
         binding.listViewViewModel = listViewModel
@@ -85,21 +76,21 @@ class ListViewFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         //  TODO
-        listViewModel.listOfLogEntries.observe(viewLifecycleOwner, Observer { list ->
+        listViewModel.listOfLogEntries.observe(viewLifecycleOwner, { list ->
             list?.let{
                 adapter.dataSet = list
             }
         })
 
         // Observe makeToast to present a Toast to the Message. Triggers if the string is not null
-        listViewModel.makeToast.observe(viewLifecycleOwner, Observer { message: String? ->
+        listViewModel.makeToast.observe(viewLifecycleOwner, { message: String? ->
             message?.let{
                 makeToast(message)
                 listViewModel.onMakeToastDone()
             }
         })
         // Observe Navigation to EditView (Creating new Entry)
-        listViewModel.navigateToNewEntry.observe(viewLifecycleOwner, Observer{ act: Boolean? ->
+        listViewModel.navigateToNewEntry.observe(viewLifecycleOwner, { act: Boolean? ->
             if (act == true){
                 val action = ListViewFragmentDirections.actionListViewFragmentToEditViewFragment()
                 findNavController().navigate(action)
@@ -108,7 +99,7 @@ class ListViewFragment : Fragment() {
         })
 
         // Observe Navigation to Detailview. Triggered when the Id is not null
-        listViewModel.navigateToDetailView.observe(viewLifecycleOwner, Observer{ diveId: String? ->
+        listViewModel.navigateToDetailView.observe(viewLifecycleOwner, { diveId: String? ->
             if (diveId != null){
                 val action = ListViewFragmentDirections.actionListViewFragmentToDetailViewFragment(diveId)
                 findNavController().navigate(action)
@@ -117,16 +108,16 @@ class ListViewFragment : Fragment() {
         })
 
         // Observe the status of the API to switch of the pull to refresh animation
-        listViewModel.repositoryApiStatus.observe(viewLifecycleOwner, Observer { status: RepositoryApiStatus? ->
+        listViewModel.repositoryApiStatus.observe(viewLifecycleOwner, { status: RepositoryDownloadStatus? ->
             Log.i("ApiStatus Tracing", "Api Status observer called with status: $status")
             if (mSwipeRefreshLayout.isRefreshing &&
-                    (status == RepositoryApiStatus.DONE || status == RepositoryApiStatus.ERROR) ){
+                    (status == RepositoryDownloadStatus.DONE || status == RepositoryDownloadStatus.ERROR) ){
                 mSwipeRefreshLayout.isRefreshing = false
             }
         })
 
         // Observe any Errors and Display the as Toast to the User
-        listViewModel.apiError.observe(viewLifecycleOwner, Observer { e: Exception? ->
+        listViewModel.apiError.observe(viewLifecycleOwner, { e: Exception? ->
             e?.let{
                 makeToast("Error: $e")
                 listViewModel.onErrorDone()
@@ -134,12 +125,12 @@ class ListViewFragment : Fragment() {
         })
 
         //Kotlin Flow TestObserver // TODO einlesen https://www.google.com/search?client=firefox-b-d&q=launch+when+created+vs.+launch+when+started
-        lifecycleScope.launchWhenResumed{
+        /*lifecycleScope.launchWhenResumed{
             listViewModel.errors
                 .onEach {
                     makeToast(it.toString())
                 }.launchIn(this)
-        }
+        }*/
 
     }
 

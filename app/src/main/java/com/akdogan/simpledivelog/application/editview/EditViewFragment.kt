@@ -11,14 +11,12 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.akdogan.simpledivelog.R
-import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabase
 import com.akdogan.simpledivelog.databinding.FragmentEditViewBinding
-import com.akdogan.simpledivelog.datalayer.repository.RepositoryApiStatus
-import com.google.android.material.snackbar.Snackbar
+import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
+import com.akdogan.simpledivelog.datalayer.repository.RepositoryUploadStatus
 import com.google.android.material.textfield.TextInputEditText
 import java.util.*
 
@@ -26,9 +24,9 @@ import java.util.*
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
 class EditViewFragment : Fragment() {
-    var t: Toast? = null
-    lateinit var binding: FragmentEditViewBinding
-    lateinit var editViewModel: EditViewModel
+    private var t: Toast? = null
+    private lateinit var binding: FragmentEditViewBinding
+    private lateinit var editViewModel: EditViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,12 +36,9 @@ class EditViewFragment : Fragment() {
             inflater, R.layout.fragment_edit_view, container, false
         )
         val application = requireNotNull(this.activity).application
-        val datasource = DiveLogDatabase.getInstance(application).diveLogDatabaseDao
         val viewModelFactory = EditViewModelFactory(
-            datasource,
             application,
             EditViewFragmentArgs.fromBundle(requireArguments()).entryId
-            //EditViewFragmentArgs.fromBundle(requireArguments()).createNewEntry
         )
         editViewModel = ViewModelProvider(this, viewModelFactory).get(EditViewModel::class.java)
         binding.lifecycleOwner = this
@@ -61,12 +56,13 @@ class EditViewFragment : Fragment() {
         binding.diveDateEdit.keyListener = null
 
         // Observe when to enable the save button
-        editViewModel.enableSaveButton.observe(viewLifecycleOwner, Observer{
+        editViewModel.enableSaveButton.observe(viewLifecycleOwner, {
             binding.buttonSave.isEnabled = it == true
         })
 
         // Observe to navigate back
-        editViewModel.navigateBack.observe(viewLifecycleOwner, Observer {
+        editViewModel.navigateBack.observe(viewLifecycleOwner, {
+            Log.i("CREATE ENTRY TRACING", "navigate Back Observer with $it")
             if (it != null && it.act) {
                 hideKeyboardFromView()
                 if (it.param == null){
@@ -79,7 +75,7 @@ class EditViewFragment : Fragment() {
         })
 
         // Observe when to present a message to the user
-        editViewModel.makeToast.observe(viewLifecycleOwner, Observer{message: String? ->
+        editViewModel.makeToast.observe(viewLifecycleOwner, { message: String? ->
             message?.let{
                 makeToast(message)
                 editViewModel.onMakeToastFinished()
@@ -87,26 +83,55 @@ class EditViewFragment : Fragment() {
         })
 
         // Observe exceptions to display a message to the user
-        editViewModel.apiError.observe(viewLifecycleOwner, Observer{ e: Exception? ->
+        editViewModel.apiError.observe(viewLifecycleOwner, { e: Exception? ->
             e?.let{
                 makeToast(e.toString())
                 editViewModel.onErrorDone()
             }
         })
 
-        // Turns on the linear progress animation when uploading
-        editViewModel.savingInProgress.observe(viewLifecycleOwner, Observer {
-            if (it == true){
-                binding.editViewUploadProgress.show()
-            } else {
-                binding.editViewUploadProgress.hide()
+        editViewModel.networkAvailable.observe(viewLifecycleOwner, {
+            Log.i("EditViewFragment Lifecycle", "Network changed to: $it")
+        })
+
+        //  Turns on the linear progress animation when uploading
+        editViewModel.uploadStatus.observe(viewLifecycleOwner, {
+            it?.let{
+                when (it.status){
+                    RepositoryUploadStatus.INDETERMINATE_UPLOAD -> {
+                        binding.editViewUploadProgress.apply {
+                            if (!this.isIndeterminate){
+                                this.visibility = View.INVISIBLE
+                                this.isIndeterminate = true
+                                this.progress = 70
+                                this.visibility = View.VISIBLE
+                            } else {
+                                this.visibility = View.VISIBLE
+                            }
+                        }
+                    }
+                    RepositoryUploadStatus.PROGRESS_UPLOAD -> {
+                        binding.editViewUploadProgress.apply{
+                            if (this.isIndeterminate){
+                                this.setProgressCompat(it.percentage, true)
+                            } else {
+                                this.progress = it.percentage
+                            }
+                        }
+                    }
+                    RepositoryUploadStatus.DONE -> {
+                        binding.editViewUploadProgress.apply {
+                            this.visibility = View.INVISIBLE
+                        }
+                    }
+                }
             }
         })
 
-        // Observes the fetching status to hide the loading animatino and present the content
-        editViewModel.repositoryApiStatus.observe(viewLifecycleOwner, Observer {
+        // Observes the fetching status to hide the loading animation and present the content
+        editViewModel.downloadStatus.observe(viewLifecycleOwner, {
             Log.i("ApiStatus Tracing", "Api Status observer called with status: $it")
-            if (it == RepositoryApiStatus.DONE || it == RepositoryApiStatus.ERROR){
+            if (it == RepositoryDownloadStatus.DONE || it == RepositoryDownloadStatus.ERROR){
                 binding.editViewProgressCircular.hide()
                 binding.editViewMainContent.visibility = View.VISIBLE
             }
