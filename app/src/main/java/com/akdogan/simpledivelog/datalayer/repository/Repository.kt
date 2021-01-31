@@ -13,6 +13,8 @@ import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
 import com.akdogan.simpledivelog.datalayer.database.asDomainModel
 import com.akdogan.simpledivelog.datalayer.network.*
 import kotlinx.coroutines.delay
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 object Repository {
@@ -96,7 +98,7 @@ object Repository {
             database.deleteAll()
             database.insertAll(list.asDatabaseModel())
         } catch (e: Exception) {
-            onErrorOccured(e)
+            onDownloadErrorOccured(e)
         }
         onFetchingDone()
     }
@@ -116,58 +118,67 @@ object Repository {
         return entry
     }
 
-    suspend fun uploadSingleDive(entry: DiveLogEntry) {
+
+    // Starts creation of new entry. If there is a imgUri, image upload is done first
+    suspend fun startUpload(
+        diveLogEntry: DiveLogEntry,
+        createNewEntry: Boolean,
+        imageUri: Uri? = null
+    ){
         uploadStart()
-        createDiveRemote(entry)
-        forceUpdate()
-        uploadDone()
+        if (imageUri != null){
+            val resultUrl = startPictureUploadCoRoutine(imageUri)
+            decideUpload(diveLogEntry.copy(imgUrl = resultUrl), createNewEntry)
+        } else {
+            decideUpload(diveLogEntry, createNewEntry)
+        }
     }
 
-    suspend fun updateSingleDive(entry: DiveLogEntry) {
+    // Start picture upload. Suspends execution until upload is done, url is returned
+    private suspend fun startPictureUploadCoRoutine(
+        uri: Uri,
+    ): String? {
+        return suspendCoroutine {continuation ->
+            CloudinaryApi.uploadPicture(
+                uri,
+                object : ClUploaderCallback() {
+
+                    override fun clOnError() {
+                        mediaUploadDone()
+                        continuation.resume(null)
+                    }
+
+                    override fun clOnSuccess(result: String?) {
+                        mediaUploadDone()
+                        Log.i("UPLOADSTATUS", "OnSuccessCalled")
+                        continuation.resume(result)
+                    }
+
+                    override fun clOnReschedule() {
+                        mediaUploadDone()
+                        continuation.resume(null)
+                    }
+
+                    override fun clOnProgress(bytes: Long, totalBytes: Long) {
+                        mediaUploadProgress(bytes, totalBytes)
+                    }
+                })
+        }
+    }
+
+    // Start upload of actual entry (create or update)
+    private suspend fun decideUpload(diveLogEntry: DiveLogEntry, createNewEntry: Boolean){
         uploadStart()
-        updateDiveRemote(entry)
-        getSingleDiveFromRemote(entry.dataBaseId)
-        uploadDone()
+        if (createNewEntry){
+            createDiveRemote(diveLogEntry)
+            forceUpdate()
+            uploadDone()
+        } else {
+            updateDiveRemote(diveLogEntry)
+            getSingleDiveFromRemote(diveLogEntry.dataBaseId)
+            uploadDone()
+        }
     }
-
-    suspend fun startUpload(contentUri: Uri, diveLogEntry: DiveLogEntry){
-
-    }
-
-    fun startPictureUpload(uri: Uri, cb: ClUploaderCallback) {
-        uploadStart()
-        CloudinaryApi.uploadPicture(
-            uri,
-            object : ClUploaderCallback() {
-                override fun clOnStart() {
-                    Log.i("UPLOADSTATUS", "OnStartCalled")
-                    //uploadStart()
-                    cb.clOnStart()
-                }
-
-                override fun clOnError() {
-                    mediaUploadDone()
-                    cb.clOnError()
-                }
-
-                override fun clOnSuccess(result: String?) {
-                    mediaUploadDone()
-                    Log.i("UPLOADSTATUS", "OnSuccessCalled")
-                    cb.clOnSuccess(result)
-                }
-
-                override fun clOnReschedule() {
-                    mediaUploadDone()
-                    cb.clOnReschedule()
-                }
-                override fun clOnProgress(bytes: Long, totalBytes: Long) {
-                    mediaUploadProgress(bytes, totalBytes)
-                    cb.clOnProgress(bytes, totalBytes)
-                }
-            })
-    }
-
-
 
     private fun uploadStart(){
         _uploadApiStatus.value = RepositoryUploadProgressStatus(
@@ -187,7 +198,6 @@ object Repository {
             progress = 0,
             total = 0
         )
-        Log.i("UPLOADSTATUS", "MediaUploadCleared")
     }
 
     private fun uploadDone(){
@@ -200,7 +210,7 @@ object Repository {
         try {
             DiveLogApi.retrofitService.updateDive(entry.asNetworkModel())
         } catch (e: Exception) {
-            onErrorOccured(e)
+            onUploadErrorOccured(e)
         }
     }
 
@@ -209,7 +219,7 @@ object Repository {
         try {
             DiveLogApi.retrofitService.createDive(entry.asNetworkModel())
         } catch (e: Exception) {
-            onErrorOccured(e)
+            onUploadErrorOccured(e)
         }
     }
 
@@ -224,7 +234,7 @@ object Repository {
                 database.insert(networkEntry.asDataBaseModel())
             }
         } catch (e: Exception) {
-            onErrorOccured(e)
+            onDownloadErrorOccured(e)
             Log.i("DATABASE", e.toString())
         }
     }
@@ -242,7 +252,7 @@ object Repository {
             DiveLogApi.retrofitService.delete(diveId)
             fetchDives()
         } catch (e: Exception) {
-            onErrorOccured(e)
+            onDownloadErrorOccured(e)
         }
         onFetchingDone()
     }
@@ -254,14 +264,19 @@ object Repository {
             DiveLogApi.retrofitService.deleteAll()
             fetchDives()
         } catch (e: Exception) {
-            onErrorOccured(e)
+            onDownloadErrorOccured(e)
         }
         onFetchingDone()
     }
 
-    private fun onErrorOccured(e: Exception) {
+    private fun onDownloadErrorOccured(e: Exception) {
         _apiError.value = e
         _downloadApiStatus.value = RepositoryDownloadStatus.ERROR
+    }
+
+    private fun onUploadErrorOccured(e: Exception){
+        _apiError.value = e
+        uploadDone()
     }
 
     fun onErrorDone() {

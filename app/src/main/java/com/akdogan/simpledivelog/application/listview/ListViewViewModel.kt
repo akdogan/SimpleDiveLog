@@ -68,7 +68,7 @@ class ListViewViewModel(
             val latestDiveNumber = Repository.getLatestDiveNumber()
             val list = getSampleData(1, latestDiveNumber)
             list.forEach {
-                Repository.uploadSingleDive(it)
+                Repository.startUpload(it, true)
             }
             onMakeToast("Sample Data Created")
 

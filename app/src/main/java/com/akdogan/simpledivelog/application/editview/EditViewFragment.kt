@@ -68,9 +68,9 @@ class EditViewFragment : Fragment() {
         })
 
         // Observe to navigate back
-        editViewModel.navigateBack.observe(viewLifecycleOwner, {
-            Log.i("CREATE ENTRY TRACING", "navigate Back Observer with $it")
-            if (it != null && it.act) {
+        editViewModel.navigateBack.observe(viewLifecycleOwner, { act: Boolean? ->
+            Log.i("CREATE ENTRY TRACING", "navigate Back Observer with $act")
+            if (act == true) {
                 hideKeyboardFromView()
                 val navCon = findNavController()
                 navCon.previousBackStackEntry?.savedStateHandle?.set(getString(R.string.navigated_back_key), true)

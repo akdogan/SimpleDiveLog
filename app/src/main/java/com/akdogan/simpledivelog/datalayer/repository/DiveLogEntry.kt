@@ -30,6 +30,7 @@ data class DiveLogEntry(
         val airIn: Int? = null, // stored in PSI
         val airOut: Int? = null, // stored in PSI
         val notes: String? = null,
+        // Should be done in a different way
         val imgUrl: String? = null
 )
 

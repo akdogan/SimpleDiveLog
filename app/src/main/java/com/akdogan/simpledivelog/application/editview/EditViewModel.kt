@@ -19,12 +19,9 @@ package com.akdogan.simpledivelog.application.editview
 import android.app.Application
 import android.icu.text.DateFormat
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.*
-import com.akdogan.simpledivelog.datalayer.repository.ClUploaderCallback
 import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.repository.Repository
-import com.akdogan.simpledivelog.diveutil.ActWithString
 import kotlinx.coroutines.launch
 
 class EditViewModelFactory(
@@ -49,7 +46,7 @@ class EditViewModel(
 ) : AndroidViewModel(application) {
     var contentUri: Uri? = null
         set(value) {
-            if (value != null){
+            if (value != null) {
                 imgUrl = null
                 remoteImgUrl = null
             }
@@ -62,7 +59,7 @@ class EditViewModel(
         private set
 
     private val _loadRemotePicture = MutableLiveData<Boolean>()
-    val loadRemotePicture : LiveData<Boolean>
+    val loadRemotePicture: LiveData<Boolean>
         get() = _loadRemotePicture
 
     var networkAvailable = Repository.networkAvailable
@@ -78,8 +75,8 @@ class EditViewModel(
 
     val uploadStatus = Repository.uploadApiStatus
 
-    private val _navigateBack = MutableLiveData<ActWithString>()
-    val navigateBack: LiveData<ActWithString>
+    private val _navigateBack = MutableLiveData<Boolean>()
+    val navigateBack: LiveData<Boolean>
         get() = _navigateBack
 
     private val _savingInProgress = MutableLiveData<Boolean>()
@@ -123,7 +120,7 @@ class EditViewModel(
         addSource(maxDepth) { value = checkEnableSaveButton() }
         addSource(locationInput) { value = checkEnableSaveButton() }
         addSource(savingInProgress) { value = checkEnableSaveButton() }
-        addSource(networkAvailable) { value = checkEnableSaveButton()}
+        addSource(networkAvailable) { value = checkEnableSaveButton() }
     }
 
     init {
@@ -144,7 +141,7 @@ class EditViewModel(
                     onMakeToast("Element found: #${entry?.diveNumber}")
                 } else {
                     onMakeToast("Error: No Element found")
-                    onNavigateBack(entryId)
+                    onNavigateBack()
                 }
             }
         }
@@ -164,7 +161,7 @@ class EditViewModel(
             imgUrl = it.imgUrl // ???
             remoteImgUrl = it.imgUrl
         }
-        if (remoteImgUrl != null){
+        if (remoteImgUrl != null) {
             _loadRemotePicture.value = true
         }
     }
@@ -179,58 +176,37 @@ class EditViewModel(
                 networkAvailable.value == true
     }
 
-    private fun putEntry(newEntry: DiveLogEntry) {
-        var navigateBackWithString: String? = null
-        viewModelScope.launch {
-            Log.i("CREATE ENTRY TRACING", "create new entry: $createNewEntry")
-            if (createNewEntry) {
-                Log.i("CREATE ENTRY TRACING", "create new entry branch entered")
-                Repository.uploadSingleDive(newEntry)
-            } else {
-                Repository.updateSingleDive(newEntry)
-                Log.i("CREATE ENTRY TRACING", "navigate back with ${newEntry.dataBaseId}")
-                navigateBackWithString = newEntry.dataBaseId
-            }
-            onNavigateBack(navigateBackWithString)
-        }
-
-    }
-
     fun onSaveButtonPressed() {
         if (checkEnableSaveButton()) {
             _savingInProgress.value = true
-            startImageUpload()
+            //startImageUpload() // ORIGINAL
+            startUploadCoroutine() // COROUTINE REFACTOR
         }
     }
 
-    private fun startEntryUpload() {
-        try {
-            val newEntry = createEntry()
-            putEntry(newEntry)
-        } catch (e: IllegalArgumentException) {
-            onMakeToast("Try create entry catch block called with $e")
-        }
+    fun uploadDone(){
+        onNavigateBack()
         _savingInProgress.value = false
     }
 
-    private fun startImageUpload() {
+    // COROUTINE REFACTOR
+    private fun startUploadCoroutine() {
         val uri = contentUri
-        if (uri != null) {
-            Repository.startPictureUpload(
-                uri,
-                object : ClUploaderCallback() {
-                    override fun clOnSuccess(result: String?) {
-                        imgUrl = result
-                        startEntryUpload()
-                    }
-                    override fun clOnError() = startEntryUpload()
-                    override fun clOnReschedule() = startEntryUpload()
-                }
-            )
-            Log.i("UPLOAD TRACING", "post upload Picture call")
-        } else {
-            // Continue with the regular upload if the contentUri is null
-            startEntryUpload()
+        try {
+            val newEntry = createEntry()
+            // Trigger the coroutine upload in the repository
+            viewModelScope.launch {
+                Repository.startUpload(
+                    newEntry,
+                    createNewEntry,
+                    uri
+                )
+                uploadDone()
+            }
+
+        } catch (e: java.lang.IllegalArgumentException) {
+            onMakeToast("Try create entry catch block called with $e")
+            uploadDone()
         }
     }
 
@@ -254,9 +230,8 @@ class EditViewModel(
         return result
     }
 
-    private fun onNavigateBack(diveId: String?) {
-        Log.i("CREATE ENTRY TRACING", "onNavigateBack: $diveId")
-        _navigateBack.value = ActWithString(true, diveId)
+    private fun onNavigateBack() {
+        _navigateBack.value = true
     }
 
     fun onNavigateBackFinished() {

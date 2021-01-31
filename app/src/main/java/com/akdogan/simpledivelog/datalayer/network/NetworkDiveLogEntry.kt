@@ -52,6 +52,6 @@ fun DiveLogEntry.asNetworkModel(): NetworkDiveLogEntry {
         airIn = this.airIn, // stored in PSI
         airOut = this.airOut, // stored in PSI
         notes = this.notes,
-        imgUrl = imgUrl
+        imgUrl = this.imgUrl
     )
 }
