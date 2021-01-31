@@ -2,9 +2,7 @@ package com.akdogan.simpledivelog.application.detailview
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -35,17 +33,50 @@ class DetailViewFragment : Fragment() {
         binding.lifecycleOwner = this
         binding.detailViewModel = detailViewModel
 
-        binding.editButton.setOnClickListener {
-            val action = DetailViewFragmentDirections.actionDetailViewFragmentToEditViewFragment(detailViewModel.diveLogId)
-            findNavController().navigate(action)
-        }
+        // Join into the options menu
+        setHasOptionsMenu(true)
 
-        detailViewModel
         return binding.root
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        menu.findItem(R.id.action_settings).isVisible = false
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.detail_view_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId){
+            R.id.detail_view_edit_button -> {
+                val action = DetailViewFragmentDirections.actionDetailViewFragmentToEditViewFragment(detailViewModel.diveLogId)
+                findNavController().navigate(action)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Observe if this fragment was navigated back to and call refresh in the viewmodel accordingly
+        val navController = findNavController();
+        // We use a String here, but any type that can be put in a Bundle is supported
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(getString(R.string.navigated_back_key))?.observe(
+            viewLifecycleOwner) { result ->
+            // Do something with the result.
+            if (result != null && result == true){
+                detailViewModel.refresh()
+                navController.currentBackStackEntry?.savedStateHandle?.remove<Boolean>(getString(R.string.navigated_back_key))
+            }
+        }
+
+
         // Observe makeToast to display messages to the user
         detailViewModel.makeToast.observe(viewLifecycleOwner, { message: String? ->
             message?.let{
@@ -57,6 +88,7 @@ class DetailViewFragment : Fragment() {
         //Observe the API Status to hide loading animation and display content
         detailViewModel.repositoryApiStatus.observe(viewLifecycleOwner, {
             Log.i("ApiStatus Tracing", "Api Status observer called with status: $it")
+            // TODO Loading probably needs to get updated
             if (it == RepositoryDownloadStatus.DONE){
                 binding.detailViewProgressCircular.hide()
                 binding.detailViewMainContent.visibility = View.VISIBLE
@@ -74,8 +106,7 @@ class DetailViewFragment : Fragment() {
         // Observe Navigation back to the List (e.g. if the element could not be found)
         detailViewModel.navigateBack.observe(viewLifecycleOwner, { act: Boolean? ->
             if (act == true){
-                val action = DetailViewFragmentDirections.actionDetailViewFragmentToListViewFragment()
-                findNavController().navigate(action)
+                findNavController().navigateUp()
                 detailViewModel.onNavigateBackDone()
             }
         })
@@ -89,4 +120,5 @@ class DetailViewFragment : Fragment() {
         t = Toast.makeText(context, message, Toast.LENGTH_SHORT)
         t?.show()
     }
+
 }

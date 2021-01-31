@@ -2,8 +2,9 @@
     <string name="app_name">Simple Dive Log</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
+    <string name="fragmetn_list_label">Simple Dive Log</string>
+    <string name="fragment_edit_label">Edit Entry</string>
+    <string name="fragment_detail_label">View Entry</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
@@ -15,4 +16,23 @@
     <string name="list_entry_dive_location"> %s</string>
     <string name="list_entry_max_depth">Maximum Depth: %d feet</string>
     <string name="list_entry_dive_duration">Dive Duration: %d minutes</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Preference Titles -->
+    <string name="units_header">Units</string>
+
+    <!-- Depth Preferences -->
+    <string name="pref_depth_unit_key" translatable="false">pref_depth_unit_key</string>
+    <string name="pref_depth_unit_label">Use metric for dept</string>
+    <string name="pref_depth_unit_summary_on">Display depth in meters</string>
+    <string name="pref_depth_unit_summary_off">Display depth in feet</string>
+
+    <!-- Pressure Preferences -->
+    <string name="pref_pressure_unit_key" translatable="false">pref_pressure_unit_key</string>
+    <string name="pref_pressure_unit_label">Use metric for pressure</string>
+    <string name="pref_pressure_unit_summary_on">Display pressure in bar</string>
+    <string name="pref_pressure_unit_summary_off">Display pressure in PSI</string>
+
+    <!-- Keys used programmatically-->
+    <string name="navigated_back_key" translatable="false">navigated_back</string>
 </resources>

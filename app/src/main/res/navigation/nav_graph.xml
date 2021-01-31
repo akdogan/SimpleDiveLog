@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/ListViewFragment"
         android:name="com.akdogan.simpledivelog.application.listview.ListViewFragment"
-        android:label="@string/first_fragment_label"
+        android:label="@string/fragmetn_list_label"
         tools:layout="@layout/fragment_list_view">
 
         <action
@@ -28,35 +28,23 @@
     <fragment
         android:id="@+id/EditViewFragment"
         android:name="com.akdogan.simpledivelog.application.editview.EditViewFragment"
-        android:label="@string/second_fragment_label"
+        android:label="@string/fragment_edit_label"
         tools:layout="@layout/fragment_edit_view">
         <argument
             android:name="entryId"
             app:argType="string"
             app:nullable="true"/>
 
-        <action
-            android:id="@+id/action_DetailView_to_ListView"
-            app:destination="@id/ListViewFragment" />
-        <action
-            android:id="@+id/action_EditViewFragment_to_DetailViewFragment"
-            app:destination="@id/DetailViewFragment"
-            app:popUpTo="@id/DetailViewFragment"
-            app:popUpToInclusive="true" />
+
     </fragment>
     <fragment
         android:id="@+id/DetailViewFragment"
         android:name="com.akdogan.simpledivelog.application.detailview.DetailViewFragment"
-        android:label="DetailViewFragment"
+        android:label="@string/fragment_detail_label"
         tools:layout="@layout/fragment_detail_view">
         <argument
             android:name="diveLogId"
             app:argType="string"/>
-        <action
-            android:id="@+id/action_DetailViewFragment_to_ListViewFragment"
-            app:destination="@id/ListViewFragment"
-            app:popUpTo="@id/ListViewFragment"
-            app:popUpToInclusive="true"/>
         <action
             android:id="@+id/action_DetailViewFragment_to_EditViewFragment"
             app:destination="@id/EditViewFragment" />

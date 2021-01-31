@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
@@ -44,10 +45,16 @@ class EditViewFragment : Fragment() {
         binding.lifecycleOwner = this
         binding.editViewModel = editViewModel
 
+        // Join into the options menu
+        setHasOptionsMenu(true)
 
         return binding.root
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        menu.findItem(R.id.action_settings).isVisible = false
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -65,11 +72,9 @@ class EditViewFragment : Fragment() {
             Log.i("CREATE ENTRY TRACING", "navigate Back Observer with $it")
             if (it != null && it.act) {
                 hideKeyboardFromView()
-                if (it.param == null){
-                    findNavController().navigate(EditViewFragmentDirections.actionDetailViewToListView())
-                } else {
-                    findNavController().navigate(EditViewFragmentDirections.actionEditViewFragmentToDetailViewFragment(it.param))
-                }
+                val navCon = findNavController()
+                navCon.previousBackStackEntry?.savedStateHandle?.set(getString(R.string.navigated_back_key), true)
+                navCon.navigateUp()
                 editViewModel.onNavigateBackFinished()
             }
         })
@@ -101,7 +106,7 @@ class EditViewFragment : Fragment() {
                     RepositoryUploadStatus.INDETERMINATE_UPLOAD -> {
                         binding.editViewUploadProgress.apply {
                             if (!this.isIndeterminate){
-                                this.visibility = View.INVISIBLE
+                                visibility = View.INVISIBLE
                                 this.isIndeterminate = true
                                 this.progress = 70
                                 this.visibility = View.VISIBLE

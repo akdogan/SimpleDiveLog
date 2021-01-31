@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_connectivity"
         android:icon="@drawable/ic_baseline_cloud_off_24"
-        android:orderInCategory="10"
+        android:orderInCategory="50"
         android:title="Offline"
         app:showAsAction="ifRoom" />
     <item

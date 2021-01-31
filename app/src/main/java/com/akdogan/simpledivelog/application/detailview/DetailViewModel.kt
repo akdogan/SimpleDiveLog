@@ -17,7 +17,11 @@
 package com.akdogan.simpledivelog.application.detailview
 
 import android.app.Application
-import androidx.lifecycle.*
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import kotlinx.coroutines.launch
@@ -45,6 +49,12 @@ class DetailViewModel(
         get() = _navigateBack
 
     init {
+        fetchDiveLogEntry()
+    }
+
+    // Fragment can call refresh when it was navigated back to (from edit view)
+    fun refresh(){
+        Log.i("NAVIGATION TEST", "refresh called")
         fetchDiveLogEntry()
     }
 

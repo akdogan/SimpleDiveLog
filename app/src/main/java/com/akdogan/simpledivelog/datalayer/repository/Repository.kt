@@ -1,9 +1,6 @@
 package com.akdogan.simpledivelog.datalayer.repository
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -14,32 +11,16 @@ import com.akdogan.simpledivelog.datalayer.database.DatabaseDiveLogEntry
 import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabase
 import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
 import com.akdogan.simpledivelog.datalayer.database.asDomainModel
-
 import com.akdogan.simpledivelog.datalayer.network.*
 import kotlinx.coroutines.delay
-import java.lang.Exception
 
 
 object Repository {
     // TODO Exceptions auf sealed class fehlertypen mappen
 
-    private val networkCallback: ConnectivityManager.NetworkCallback =
-        object : ConnectivityManager.NetworkCallback() {
+    // Todo Repo hat jetzt dependencies auf das Android System
+    // Stattdessen in der MainActivity betwork status observen und hier nur zwei funktionen have / lost aufrufen
 
-            override fun onLost(network: Network) {
-                Log.i("NETWORKING", "Network LOST: ${network.networkHandle}")
-                _networkAvailable.postValue(false)
-                super.onLost(network)
-            }
-
-            override fun onCapabilitiesChanged(nw: Network, caps: NetworkCapabilities) {
-                if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
-                    Log.i("NETWORKING", "Capability validated for ${nw.networkHandle}")
-                    _networkAvailable.postValue(true)
-                }
-                super.onCapabilitiesChanged(nw, caps)
-            }
-        }
 
     private val _networkAvailable = MutableLiveData<Boolean>()
     val networkAvailable: LiveData<Boolean>
@@ -78,12 +59,12 @@ object Repository {
         CloudinaryApi.setup(context)
     }
 
-    fun registerNetworkCallback(systemService: ConnectivityManager) {
-        systemService.registerDefaultNetworkCallback(networkCallback)
+    fun onNetworkAvailable() {
+        _networkAvailable.postValue(true)
     }
 
-    fun unregisterNetworkCallback(systemService: ConnectivityManager) {
-        systemService.unregisterNetworkCallback(networkCallback)
+    fun onNetworkLost() {
+        _networkAvailable.postValue(false)
     }
 
     suspend fun forceUpdate() {
@@ -91,7 +72,10 @@ object Repository {
     }
 
     fun getLatestDiveNumber(): Int {
-        return _listOfDives.value?.maxByOrNull { it.diveNumber }?.diveNumber ?: 0
+        Log.i("DIVENUMER TRACING", "getLatestDiveNumber called")
+        val test: Int = _listOfDives.value?.maxByOrNull { it.diveNumber }?.diveNumber ?: 0
+        Log.i("DIVENUMER TRACING", "divenumber is $test")
+        return test
     }
 
     private fun onFetching() {
@@ -121,7 +105,8 @@ object Repository {
     // Fetched from remote into the database, then fetched from database
     suspend fun getSingleDive(diveId: String): DiveLogEntry? {
         onFetching()
-        delay(1000)
+        // Delay for debuggin purpose so we can actually see the loading animation
+        delay(200)
         var entry = getSingleDiveFromDataBase(diveId)
         if (entry == null) {
             getSingleDiveFromRemote(diveId)
@@ -143,6 +128,10 @@ object Repository {
         updateDiveRemote(entry)
         getSingleDiveFromRemote(entry.dataBaseId)
         uploadDone()
+    }
+
+    suspend fun startUpload(contentUri: Uri, diveLogEntry: DiveLogEntry){
+
     }
 
     fun startPictureUpload(uri: Uri, cb: ClUploaderCallback) {

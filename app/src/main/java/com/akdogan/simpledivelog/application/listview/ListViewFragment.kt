@@ -70,12 +70,17 @@ class ListViewFragment : Fragment() {
         mSwipeRefreshLayout = binding.swipeRefreshLayout
         mSwipeRefreshLayout.setOnRefreshListener { listViewModel.onRefresh() }
 
+
+
         return binding.root
     }
 
+    // Todo: Add search to actionbar as collapsible action view
+    // https://developer.android.com/training/appbar/action-views
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //  TODO
         listViewModel.listOfLogEntries.observe(viewLifecycleOwner, { list ->
             list?.let{
                 adapter.dataSet = list

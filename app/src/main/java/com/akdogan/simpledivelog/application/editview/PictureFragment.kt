@@ -13,7 +13,6 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.core.view.setPadding
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.akdogan.simpledivelog.R
 import com.bumptech.glide.Glide
@@ -32,7 +32,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
-import kotlin.jvm.Throws
 
 // TODO Add delete picture button
 class PictureFragment : Fragment() {
@@ -251,6 +250,8 @@ class PictureFragment : Fragment() {
             // for No suitable Activity
         }
     }
+
+    // TODO: Den ganzen schissle hier in ein eigenes Repository auslagern
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
