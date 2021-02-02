@@ -19,6 +19,13 @@
             app:summaryOn="@string/pref_pressure_unit_summary_on"
             app:title="@string/pref_pressure_unit_label" />
 
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="@string/pref_weight_unit_key"
+            app:summaryOff="@string/pref_weight_unit_summary_off"
+            app:summaryOn="@string/pref_weight_unit_summary_on"
+            app:title="@string/pref_weight_unit_label" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>
