@@ -142,6 +142,8 @@ class EditViewFragment : Fragment() {
             }
         })
 
+
+
         binding.diveDateEdit.setOnFocusChangeListener{v, hasFocus ->
             if (hasFocus){
                 openDatePicker(v)

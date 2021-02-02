@@ -20,8 +20,15 @@ import android.app.Application
 import android.icu.text.DateFormat
 import android.net.Uri
 import androidx.lifecycle.*
+import androidx.preference.PreferenceManager
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.akdogan.simpledivelog.application.CleanupCacheWorker
 import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.repository.Repository
+import com.akdogan.simpledivelog.diveutil.Constants
+import com.akdogan.simpledivelog.diveutil.UnitConverter
 import kotlinx.coroutines.launch
 
 class EditViewModelFactory(
@@ -43,7 +50,9 @@ class EditViewModel(
     application: Application,
     entryId: String?
     // TODO Bleibt hängen wenn keine Internetverbindung
-) : AndroidViewModel(application) {
+) : AndroidViewModel(application){
+
+
     var contentUri: Uri? = null
         set(value) {
             if (value != null) {
@@ -113,6 +122,9 @@ class EditViewModel(
 
     val locationInput = MutableLiveData<String>()
 
+    private var converter: UnitConverter
+
+
     val enableSaveButton: MediatorLiveData<Boolean> = MediatorLiveData<Boolean>().apply {
         addSource(diveNumber) { value = checkEnableSaveButton() }
         addSource(liveDate) { value = checkEnableSaveButton() }
@@ -124,6 +136,12 @@ class EditViewModel(
     }
 
     init {
+
+        val prefs = PreferenceManager.getDefaultSharedPreferences(getApplication())
+
+        val convertPressure = prefs.getBoolean(Constants.PREF_PRESSURE_UNIT_KEY, Constants.PREF_PRESSURE_UNIT_DEAFULT)
+        val convertDepth = prefs.getBoolean(Constants.PREF_DEPTH_UNIT_KEY, Constants.PREF_DEPTH_UNIT_DEFAULT)
+        converter = UnitConverter(convertDepth, convertPressure)
         if (createNewEntry) {
             diveNumberInput.value = (Repository.getLatestDiveNumber() + 1).toString()
         } else {
@@ -151,20 +169,24 @@ class EditViewModel(
         entry?.let {
             diveNumberInput.value = it.diveNumber.toString()
             diveDurationInput.value = it.diveDuration.toStringOrNull()
-            maxDepthInput.value = it.maxDepth.toStringOrNull()
+            maxDepthInput.value = converter.depthToDisplay(it.maxDepth).toStringOrNull()
             locationInput.value = it.diveLocation
             _liveDate.value = it.diveDate
             weightInput.value = it.weight.toStringOrNull()
-            airInInput.value = it.airIn.toStringOrNull()
-            airOutInput.value = it.airOut.toStringOrNull()
+            airInInput.value = converter.pressureToDisplay(it.airIn).toStringOrNull()
+            airOutInput.value = converter.pressureToDisplay(it.airOut).toStringOrNull()
             notesInput.value = it.notes
             imgUrl = it.imgUrl // ???
             remoteImgUrl = it.imgUrl
         }
+
         if (remoteImgUrl != null) {
             _loadRemotePicture.value = true
         }
     }
+
+
+
 
     private fun checkEnableSaveButton(): Boolean {
         return diveNumber.value != null &&
@@ -201,6 +223,9 @@ class EditViewModel(
                     createNewEntry,
                     uri
                 )
+                uri?.let{
+                    //setupWorker(it)
+                }
                 uploadDone()
             }
 
@@ -210,6 +235,13 @@ class EditViewModel(
         }
     }
 
+    suspend fun setupWorker(localUri: Uri){
+        val oneTimeRequest = OneTimeWorkRequestBuilder<CleanupCacheWorker>()
+            .setInputData(workDataOf("WORKER_TEST" to localUri))
+            .build()
+        WorkManager.getInstance().enqueue(oneTimeRequest)
+    }
+
     @Throws(IllegalArgumentException::class)
     private fun createEntry(): DiveLogEntry {
         //val test: Int? = null // TODO remove after testing
@@ -217,12 +249,12 @@ class EditViewModel(
             entry?.dataBaseId ?: "",
             requireNotNull(diveNumber.value),
             requireNotNull(diveDuration.value),
-            requireNotNull(maxDepth.value),
+            converter.depthToData(requireNotNull(maxDepth.value)),
             requireNotNull(locationInput.value),
             requireNotNull(liveDate.value),
             weightInput.value?.toIntOrNull(),
-            airInInput.value?.toIntOrNull(),
-            airOutInput.value?.toIntOrNull(),
+            converter.pressureToData(airInInput.value?.toIntOrNull()),
+            converter.pressureToData(airOutInput.value?.toIntOrNull()),
             notesInput.value,
             imgUrl
         )
@@ -253,6 +285,8 @@ class EditViewModel(
     fun onErrorDone() {
         Repository.onErrorDone()
     }
+
+
 
 
 }

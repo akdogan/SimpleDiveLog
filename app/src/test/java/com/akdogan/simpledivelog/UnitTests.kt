@@ -1,12 +1,12 @@
 package com.akdogan.simpledivelog
 
-import com.akdogan.simpledivelog.diveutil.getRandomDateLaterThan
-import com.akdogan.simpledivelog.diveutil.getSampleData
 import com.akdogan.simpledivelog.application.editview.toStringOrNull
 import com.akdogan.simpledivelog.datalayer.network.getThumbnailFromImageUrl
+import com.akdogan.simpledivelog.diveutil.getRandomDateLaterThan
+import com.akdogan.simpledivelog.diveutil.getSampleData
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -77,4 +77,6 @@ class UnitTests {
         val result = value.toStringOrNull()
         assertEquals(null, result)
     }
+
+
 }

@@ -23,15 +23,21 @@
 
     <!-- Depth Preferences -->
     <string name="pref_depth_unit_key" translatable="false">pref_depth_unit_key</string>
-    <string name="pref_depth_unit_label">Use metric for dept</string>
-    <string name="pref_depth_unit_summary_on">Display depth in meters</string>
-    <string name="pref_depth_unit_summary_off">Display depth in feet</string>
+    <string name="pref_depth_unit_label">Use metric for depth</string>
+    <string name="pref_depth_unit_summary_on">Meters</string>
+    <string name="pref_depth_unit_summary_off">Feet</string>
 
     <!-- Pressure Preferences -->
     <string name="pref_pressure_unit_key" translatable="false">pref_pressure_unit_key</string>
     <string name="pref_pressure_unit_label">Use metric for pressure</string>
-    <string name="pref_pressure_unit_summary_on">Display pressure in bar</string>
-    <string name="pref_pressure_unit_summary_off">Display pressure in PSI</string>
+    <string name="pref_pressure_unit_summary_on">Bar</string>
+    <string name="pref_pressure_unit_summary_off">PSI</string>
+
+    <!-- Weight Preferences -->
+    <string name="pref_weight_unit_key" translatable="false">pref_weight_unit_key</string>
+    <string name="pref_weight_unit_label">Use metric for weight</string>
+    <string name="pref_weight_unit_summary_on">Kg</string>
+    <string name="pref_weight_unit_summary_off">Pound (lbs.)</string>
 
     <!-- Keys used programmatically-->
     <string name="navigated_back_key" translatable="false">navigated_back</string>

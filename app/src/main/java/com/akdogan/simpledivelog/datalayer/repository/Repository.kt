@@ -103,6 +103,12 @@ object Repository {
         onFetchingDone()
     }
 
+    // coroutine Scope for background processing?
+    /*withContext(Dispatchers.IO) {
+        val playlist = DevByteNetwork.devbytes.getPlaylist()
+        database.videoDao.insertAll(playlist.asDataBaseModel())
+    }*/
+
 
     // Fetched from remote into the database, then fetched from database
     suspend fun getSingleDive(diveId: String): DiveLogEntry? {
@@ -133,6 +139,8 @@ object Repository {
             decideUpload(diveLogEntry, createNewEntry)
         }
     }
+
+
 
     // Start picture upload. Suspends execution until upload is done, url is returned
     private suspend fun startPictureUploadCoRoutine(
