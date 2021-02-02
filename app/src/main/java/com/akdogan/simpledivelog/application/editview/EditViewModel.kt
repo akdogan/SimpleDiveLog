@@ -1,24 +1,11 @@
-/*
- * Copyright 2019, The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 
 package com.akdogan.simpledivelog.application.editview
 
 import android.app.Application
 import android.icu.text.DateFormat
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.*
 import androidx.preference.PreferenceManager
 import androidx.work.OneTimeWorkRequestBuilder
@@ -30,6 +17,7 @@ import com.akdogan.simpledivelog.datalayer.repository.Repository
 import com.akdogan.simpledivelog.diveutil.Constants
 import com.akdogan.simpledivelog.diveutil.UnitConverter
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class EditViewModelFactory(
     private val application: Application,
@@ -224,7 +212,7 @@ class EditViewModel(
                     uri
                 )
                 uri?.let{
-                    //setupWorker(it)
+                    setupWorker(it)
                 }
                 uploadDone()
             }
@@ -235,11 +223,14 @@ class EditViewModel(
         }
     }
 
-    suspend fun setupWorker(localUri: Uri){
+    fun setupWorker(localUri: Uri){
+        val filename = localUri.lastPathSegment
         val oneTimeRequest = OneTimeWorkRequestBuilder<CleanupCacheWorker>()
-            .setInputData(workDataOf("WORKER_TEST" to localUri))
+            .setInputData(workDataOf(Constants.CACHE_CLEANUP_WORKER_FILENAME_KEY to filename))
+            .setInitialDelay(1, TimeUnit.MINUTES)
             .build()
-        WorkManager.getInstance().enqueue(oneTimeRequest)
+        WorkManager.getInstance(getApplication()).enqueue(oneTimeRequest)
+        Log.i("WORKER_TESTS", "Worker Scheduled")
     }
 
     @Throws(IllegalArgumentException::class)
@@ -248,8 +239,8 @@ class EditViewModel(
         val result = DiveLogEntry(
             entry?.dataBaseId ?: "",
             requireNotNull(diveNumber.value),
-            requireNotNull(diveDuration.value),
             converter.depthToData(requireNotNull(maxDepth.value)),
+            requireNotNull(maxDepth.value),
             requireNotNull(locationInput.value),
             requireNotNull(liveDate.value),
             weightInput.value?.toIntOrNull(),

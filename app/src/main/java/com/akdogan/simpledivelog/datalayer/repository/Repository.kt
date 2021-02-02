@@ -20,10 +20,6 @@ import kotlin.coroutines.suspendCoroutine
 object Repository {
     // TODO Exceptions auf sealed class fehlertypen mappen
 
-    // Todo Repo hat jetzt dependencies auf das Android System
-    // Stattdessen in der MainActivity betwork status observen und hier nur zwei funktionen have / lost aufrufen
-
-
     private val _networkAvailable = MutableLiveData<Boolean>()
     val networkAvailable: LiveData<Boolean>
         get() = _networkAvailable
