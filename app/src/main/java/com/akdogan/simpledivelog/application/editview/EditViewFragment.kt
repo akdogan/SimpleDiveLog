@@ -101,6 +101,13 @@ class EditViewFragment : Fragment() {
 
         //  Turns on the linear progress animation when uploading
         editViewModel.uploadStatus.observe(viewLifecycleOwner, {
+            // TODO Create Espresso Test
+            // Start Progress indeterminate, verifiy progress bar is shown indeterminate
+            // Switch to determinate progress, verify progress is shown determinate
+            // Increment progress, verify progress displayed matches
+            // Switch to indeterminate, verify progress bar is shown indeterminate
+            // Switch off upload, verify progress bar is not shown anymore
+            // Maybe create fragment and activity in test? then control from fragment check in activity
             it?.let{
                 when (it.status){
                     RepositoryUploadStatus.INDETERMINATE_UPLOAD -> {
@@ -173,7 +180,7 @@ class EditViewFragment : Fragment() {
             cal.get(Calendar.MONTH),
             cal.get(Calendar.DAY_OF_MONTH)
         )
-        picker.datePicker.maxDate = System.currentTimeMillis()
+        picker.datePicker.maxDate = today
         picker.show()
     }
 

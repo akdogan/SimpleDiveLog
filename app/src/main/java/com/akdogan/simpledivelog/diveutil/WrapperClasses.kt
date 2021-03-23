@@ -35,11 +35,6 @@ class UnitConverter(
         } else {
             round(press * BAR_TO_PSI).toInt()
         }
-        /*return if (convertPressure){
-            round(press / BAR_TO_PSI).toInt()
-        } else {
-            press
-        }*/
     }
 
     fun pressureToDisplay(press: Int?): Int?{
@@ -48,11 +43,5 @@ class UnitConverter(
         } else {
             round(press / BAR_TO_PSI).toInt()
         }
-
-        /*return if (convertPressure){
-            round(press * BAR_TO_PSI).toInt()
-        } else {
-            press
-        }*/
     }
 }

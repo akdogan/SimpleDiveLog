@@ -53,7 +53,9 @@ object Repository {
         onFetching()
         database = DiveLogDatabase.getInstance(context).diveLogDatabaseDao
         _listOfDives = database.getAllEntriesAsLiveData()
+
         fetchDives()
+
         CloudinaryApi.setup(context)
     }
 
@@ -77,13 +79,13 @@ object Repository {
     }
 
     private fun onFetching() {
-        _downloadApiStatus.value = RepositoryDownloadStatus.FETCHING
+        _downloadApiStatus.postValue(RepositoryDownloadStatus.FETCHING)
     }
 
     // TODO Not sure if its a problem that the status stays on Error
     private fun onFetchingDone() {
         if (_downloadApiStatus.value == RepositoryDownloadStatus.FETCHING) {
-            _downloadApiStatus.value = RepositoryDownloadStatus.DONE
+            _downloadApiStatus.postValue(RepositoryDownloadStatus.DONE)
         }
     }
 

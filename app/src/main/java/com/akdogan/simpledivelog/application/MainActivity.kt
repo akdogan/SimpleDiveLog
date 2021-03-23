@@ -20,6 +20,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.datalayer.repository.Repository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -29,10 +30,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //This should be done with Dependency Injection
-        lifecycleScope.launch {
-            Repository.setup(applicationContext)
-        }
+        lifecycleScope.launch(Dispatchers.IO) {
 
+            Repository.setup(applicationContext)
+            Log.d("MAIN THREAD", "End of Coroutine")
+        }
+        Log.d("MAIN THREAD", "After Coroutine")
         setContentView(R.layout.activity_main)
         // Setup Action bar
         setSupportActionBar(findViewById(R.id.toolbar))
@@ -60,6 +63,7 @@ class MainActivity : AppCompatActivity() {
                 super.onCapabilitiesChanged(nw, caps)
             }
         }
+        Log.i("MAIN THREAD", "End of onCreate Activity")
     }
 
     override fun onSupportNavigateUp(): Boolean {

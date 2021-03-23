@@ -11,7 +11,7 @@ import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import kotlinx.coroutines.launch
 
-
+// TODO Refactor all Viewmodels to standard Viewmodel if app is not needed
 class DetailViewModel(
     application: Application,
     val diveLogId: String

@@ -48,6 +48,12 @@ class PictureFragment : Fragment() {
 
         val application = requireNotNull(this.activity).application
         val viewModelFactory = EditViewModelFactory(application, null)
+        // TODO Check proper way to get the proper viewModel instance
+        // If you’re using a shared ViewModel between multiple fragments, make sure you’re using the
+        // same instance in all screens. This can happen when passing the Fragment instead of the
+        // Activity as the LifecycleOwner to the ViewModelProviders or using by ViewModels in a
+        // fragment instead of by activityViewModels().
+        
         viewModel = ViewModelProvider(
             requireParentFragment(),
             viewModelFactory

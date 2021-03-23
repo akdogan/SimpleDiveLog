@@ -71,7 +71,7 @@ class ListViewFragment : Fragment() {
         mSwipeRefreshLayout.setOnRefreshListener { listViewModel.onRefresh() }
 
 
-
+        Log.i("MAIN THREAD", "End of onCreate Fragment")
         return binding.root
     }
 

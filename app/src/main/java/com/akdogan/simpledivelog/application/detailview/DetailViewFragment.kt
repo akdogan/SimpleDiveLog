@@ -19,6 +19,8 @@ class DetailViewFragment : Fragment() {
     private var t: Toast? = null
     private lateinit var binding : FragmentDetailViewBinding
     private lateinit var detailViewModel: DetailViewModel
+    // TODO Use by navArgs instead of retrieving manually from bundle
+    //private val args: DetailViewFragmentArgs by navArgs()
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
