@@ -31,7 +31,7 @@ class EditViewFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         binding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_edit_view, container, false
@@ -69,7 +69,6 @@ class EditViewFragment : Fragment() {
 
         // Observe to navigate back
         editViewModel.navigateBack.observe(viewLifecycleOwner, { act: Boolean? ->
-            Log.i("CREATE ENTRY TRACING", "navigate Back Observer with $act")
             if (act == true) {
                 hideKeyboardFromView()
                 val navCon = findNavController()
@@ -142,7 +141,6 @@ class EditViewFragment : Fragment() {
 
         // Observes the fetching status to hide the loading animation and present the content
         editViewModel.downloadStatus.observe(viewLifecycleOwner, {
-            Log.i("ApiStatus Tracing", "Api Status observer called with status: $it")
             if (it == RepositoryDownloadStatus.DONE || it == RepositoryDownloadStatus.ERROR){
                 binding.editViewProgressCircular.hide()
                 binding.editViewMainContent.visibility = View.VISIBLE

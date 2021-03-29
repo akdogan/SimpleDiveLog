@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -110,7 +109,6 @@ class PictureFragment : Fragment() {
             .setMessage(text)
         if (settingsButton) {
             builder.setPositiveButton("Settings") { dialog, id ->
-                Log.i("TEST", "test this shit")
                 val i = Intent()
                 i.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                 i.addCategory(Intent.CATEGORY_DEFAULT)
@@ -129,7 +127,6 @@ class PictureFragment : Fragment() {
     }
 
     private fun goFullScreen() {
-        // TODO Jannis: Wo soll ich die bundle namen am besten storn?
         fun launch(uri: Uri) {
             val intent = Intent(requireContext(), PictureFullscreenActivity::class.java).apply {
                 putExtra(BUNDLE_IMAGE_URI_NAME, uri)
@@ -175,7 +172,7 @@ class PictureFragment : Fragment() {
         }
     }
 
-
+    // Todo: Use strings.xml instead of hardcoded
     private fun showGalleryRationale() =
         myDialog("Gallery Permission", "Please allow the app open pictures from the gallery", true)
 
@@ -245,19 +242,17 @@ class PictureFragment : Fragment() {
                 )
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
             cameraTempUri = photoUri
-            Log.i("CONTENT URI before picture activity start", "contentUri ${viewModel.contentUri}")
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-            Log.i("CONTENT URI after activity start", "contentUri ${viewModel.contentUri}")
         } catch (e: IOException) {
-            // For creating file
+            // For creating file --> Error Handling
         } catch (e: IllegalArgumentException) {
-            // for getUriForFile
+            // for getUriForFile --> Error Handling
         } catch (e: ActivityNotFoundException) {
-            // for No suitable Activity
+            // for No suitable Activity --> Error Handling
         }
     }
 
-    // TODO: Den ganzen schissle hier in ein eigenes Repository auslagern
+    // TODO: Maybe move Fileinteraction into its own repository
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -286,9 +281,7 @@ class PictureFragment : Fragment() {
             }
             if (viewModel.contentUri != null) {
                 view?.findViewById<ImageView>(R.id.picture_fragment_image_view)?.let {
-                    Log.i("Fuuuuu", "${it.scaleType}")
                     it.scaleType = ImageView.ScaleType.CENTER_CROP
-                    Log.i("Fuuuu", "${it.scaleType}")
                     it.setPadding(0)
                     it.setImageURI(viewModel.contentUri)
                 }
@@ -325,12 +318,10 @@ class PictureFragment : Fragment() {
             val resolver = requireContext().contentResolver
             resolver.openInputStream(uri).use {
                 if ((it?.read(ByteArray(1)) ?: -1) >= 0) {
-                    Log.i("LEGIT", "File is legit")
                     return true
                 }
             }
         }
-        Log.i("LEGIT", "File is not legit")
         return false
     }
 
@@ -346,7 +337,7 @@ class PictureFragment : Fragment() {
         // Create an image file name
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val storageDir: File? =
-            context?.cacheDir//getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+            context?.cacheDir
         try {
             return File.createTempFile(
                 "JPEG_${timeStamp}_", /* prefix */

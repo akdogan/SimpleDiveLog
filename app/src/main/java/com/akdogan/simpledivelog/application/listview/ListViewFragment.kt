@@ -30,12 +30,13 @@ class ListViewFragment : Fragment() {
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         val binding: FragmentListViewBinding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_list_view, container, false)
         val application = requireNotNull(this.activity).application
         val viewModelFactory = ListViewViewModelFactory(application)
+        // TODO Use delegate instead of factory ?
         listViewModel = ViewModelProvider(this, viewModelFactory).get(ListViewViewModel::class.java)
         binding.lifecycleOwner = this
         binding.listViewViewModel = listViewModel
@@ -128,14 +129,6 @@ class ListViewFragment : Fragment() {
                 listViewModel.onErrorDone()
             }
         })
-
-        //Kotlin Flow TestObserver // TODO einlesen https://www.google.com/search?client=firefox-b-d&q=launch+when+created+vs.+launch+when+started
-        /*lifecycleScope.launchWhenResumed{
-            listViewModel.errors
-                .onEach {
-                    makeToast(it.toString())
-                }.launchIn(this)
-        }*/
 
     }
 

@@ -72,9 +72,7 @@ object Repository {
     }
 
     fun getLatestDiveNumber(): Int {
-        Log.i("DIVENUMER TRACING", "getLatestDiveNumber called")
         val test: Int = _listOfDives.value?.maxByOrNull { it.diveNumber }?.diveNumber ?: 0
-        Log.i("DIVENUMER TRACING", "divenumber is $test")
         return test
     }
 
@@ -101,17 +99,12 @@ object Repository {
         onFetchingDone()
     }
 
-    // coroutine Scope for background processing?
-    /*withContext(Dispatchers.IO) {
-        val playlist = DevByteNetwork.devbytes.getPlaylist()
-        database.videoDao.insertAll(playlist.asDataBaseModel())
-    }*/
 
 
     // Fetched from remote into the database, then fetched from database
     suspend fun getSingleDive(diveId: String): DiveLogEntry? {
         onFetching()
-        // Delay for debuggin purpose so we can actually see the loading animation
+        // Delay for debugging purpose so we can actually see the loading animation
         delay(200)
         var entry = getSingleDiveFromDataBase(diveId)
         if (entry == null) {
@@ -141,6 +134,7 @@ object Repository {
 
 
     // Start picture upload. Suspends execution until upload is done, url is returned
+    // TODO: Check if the coroutine can run into an endless situation (maybe needs a timeout to be save?)
     private suspend fun startPictureUploadCoRoutine(
         uri: Uri,
     ): String? {
@@ -321,6 +315,8 @@ data class RepositoryUploadProgressStatus(
         }
 }
 
+
+// TODO Cleanup, not sure if I need this
 abstract class ClUploaderCallback {
     open fun clOnSuccess(result: String?) {}
 

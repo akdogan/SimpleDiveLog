@@ -5,7 +5,6 @@ package com.akdogan.simpledivelog.application.editview
 import android.app.Application
 import android.icu.text.DateFormat
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.*
 import androidx.preference.PreferenceManager
 import androidx.work.OneTimeWorkRequestBuilder
@@ -189,8 +188,7 @@ class EditViewModel(
     fun onSaveButtonPressed() {
         if (checkEnableSaveButton()) {
             _savingInProgress.value = true
-            //startImageUpload() // ORIGINAL
-            startUploadCoroutine() // COROUTINE REFACTOR
+            startUploadCoroutine()
         }
     }
 
@@ -199,7 +197,6 @@ class EditViewModel(
         _savingInProgress.value = false
     }
 
-    // COROUTINE REFACTOR
     private fun startUploadCoroutine() {
         val uri = contentUri
         try {
@@ -230,12 +227,12 @@ class EditViewModel(
             .setInitialDelay(1, TimeUnit.MINUTES)
             .build()
         WorkManager.getInstance(getApplication()).enqueue(oneTimeRequest)
-        Log.i("WORKER_TESTS", "Worker Scheduled")
     }
 
+
+    // TODO: Unit conversion from the settings needs to be completely redone
     @Throws(IllegalArgumentException::class)
     private fun createEntry(): DiveLogEntry {
-        //val test: Int? = null // TODO remove after testing
         val result = DiveLogEntry(
             entry?.dataBaseId ?: "",
             requireNotNull(diveNumber.value),

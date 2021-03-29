@@ -48,7 +48,7 @@ object CloudinaryApi {
 
             override fun onReschedule(requestId: String?, error: ErrorInfo?) {
                 cbImp.clOnReschedule()
-                // If a reschedule happens, the request should be canceled instead as there is no
+                // If a reschedule happens, the request is canceled for now instead as there is no
                 // appropriate handling for this case in the application layer
                 MediaManager.get().cancelRequest(requestId)
             }}

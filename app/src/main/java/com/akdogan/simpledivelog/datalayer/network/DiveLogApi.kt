@@ -20,6 +20,8 @@ private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .build()
 
+// TODO Add Apis for users
+
 interface DiveLogApiService {
     @GET("dives")
     suspend fun getDives():

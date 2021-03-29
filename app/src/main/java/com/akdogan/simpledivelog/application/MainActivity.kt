@@ -27,11 +27,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
+    // TODO: Add Login and use different users instead of only one
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //This should be done with Dependency Injection
         lifecycleScope.launch(Dispatchers.IO) {
-
+            // TODO Startup is extremely slow, needs to be investigated
             Repository.setup(applicationContext)
             Log.d("MAIN THREAD", "End of Coroutine")
         }
@@ -104,9 +106,7 @@ class MainActivity : AppCompatActivity() {
                 val i = Intent(this, SettingsActivity::class.java)
                 startActivity(i)
                 return true
-                /*val intent = Intent(this, SettingsActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                startActivity(intent)*/
+
             }
             R.id.action_connectivity -> {
                 val i = Intent()

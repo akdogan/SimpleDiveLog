@@ -39,7 +39,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-
+                <!--TODO looks ugly, needs to be redone somehow (Maybe Material List style) -->
                 <TextView
                     android:id="@+id/dive_number_description"
                     style="@style/DetailViewDescriptionField"

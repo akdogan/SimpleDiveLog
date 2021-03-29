@@ -15,9 +15,6 @@ class ListViewViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    /*private val errorsFlow = MutableStateFlow<Exception?>(null)
-    val errors: Flow<Exception> = errorsFlow.filterNotNull()*/
-
     val apiError = Repository.apiError
 
     val repositoryApiStatus = Repository.downloadStatus
@@ -50,7 +47,7 @@ class ListViewViewModel(
     fun deleteAllRemote() =
         viewModelScope.launch { Repository.deleteAll() }
 
-    // Todo ?? Über Festivals reden nicht vergessen
+
     fun createDummyData() {
         viewModelScope.launch {
             val latestDiveNumber = Repository.getLatestDiveNumber()
@@ -59,8 +56,6 @@ class ListViewViewModel(
                 Repository.startUpload(it, true)
             }
             onMakeToast("Sample Data Created")
-
-            //errorsFlow.value = Exception("erag")
         }
     }
 
