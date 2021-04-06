@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application.detailview
+package com.akdogan.simpledivelog.application.ui.detailview
 
 import android.os.Bundle
 import android.util.Log
@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.akdogan.simpledivelog.R
+import com.akdogan.simpledivelog.application.ServiceLocator
 import com.akdogan.simpledivelog.databinding.FragmentDetailViewBinding
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 
@@ -25,12 +26,11 @@ class DetailViewFragment : Fragment() {
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         binding = DataBindingUtil.inflate(
                 inflater, R.layout.fragment_detail_view, container, false)
-        val application = requireNotNull(this.activity).application
-        val viewModelFactory = DetailViewModelFactory(application, DetailViewFragmentArgs.fromBundle(requireArguments()).diveLogId)
+        val viewModelFactory = DetailViewModelFactory(ServiceLocator.repo, DetailViewFragmentArgs.fromBundle(requireArguments()).diveLogId)
         detailViewModel = ViewModelProvider(this, viewModelFactory).get(DetailViewModel::class.java)
         binding.lifecycleOwner = this
         binding.detailViewModel = detailViewModel

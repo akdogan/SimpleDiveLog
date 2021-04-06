@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application.editview
+package com.akdogan.simpledivelog.application.ui.editview
 
 import android.net.Uri
 import android.os.Bundle

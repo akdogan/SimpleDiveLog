@@ -1,25 +1,20 @@
+package com.akdogan.simpledivelog.application.ui.listview
 
-package com.akdogan.simpledivelog.application.listview
-
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import com.akdogan.simpledivelog.diveutil.getSampleData
 import kotlinx.coroutines.launch
 
 
-class ListViewViewModel(
-    application: Application
-) : AndroidViewModel(application) {
+class ListViewModel(
+    val repository: Repository,
+) : ViewModel() {
 
-    val apiError = Repository.apiError
+    val apiError = repository.apiError
 
-    val repositoryApiStatus = Repository.downloadStatus
+    val repositoryApiStatus = repository.downloadStatus
 
-    val listOfLogEntries = Repository.listOfDives
+    val listOfLogEntries = repository.listOfDives
 
     private val _navigateToNewEntry = MutableLiveData<Boolean>()
     val navigateToNewEntry: LiveData<Boolean>
@@ -33,27 +28,32 @@ class ListViewViewModel(
     val makeToast: LiveData<String>
         get() = _makeToast
 
+    init {
+        viewModelScope.launch {
+            repository.forceUpdate()
+        }
+    }
 
 
-    fun onErrorDone() = Repository.onErrorDone()
+    fun onErrorDone() = repository.onErrorDone()
 
     fun onRefresh() = updateList()
 
-    private fun updateList() = viewModelScope.launch { Repository.forceUpdate() }
+    private fun updateList() = viewModelScope.launch { repository.forceUpdate() }
 
     fun deleteRemoteItem(diveId: String) =
-        viewModelScope.launch { Repository.deleteDive(diveId) }
+        viewModelScope.launch { repository.deleteDive(diveId) }
 
     fun deleteAllRemote() =
-        viewModelScope.launch { Repository.deleteAll() }
+        viewModelScope.launch { repository.deleteAll() }
 
 
     fun createDummyData() {
         viewModelScope.launch {
-            val latestDiveNumber = Repository.getLatestDiveNumber()
+            val latestDiveNumber = repository.getLatestDiveNumber()
             val list = getSampleData(1, latestDiveNumber)
             list.forEach {
-                Repository.startUpload(it, true)
+                repository.startUpload(it, true)
             }
             onMakeToast("Sample Data Created")
         }
@@ -85,8 +85,19 @@ class ListViewViewModel(
     }
 
 
-
 }
 
+
+class ListViewModelFactory(
+    private val repo: Repository
+) : ViewModelProvider.Factory {
+    @Suppress("unchecked_cast")
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ListViewModel::class.java)) {
+            return ListViewModel(repo) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
 
 

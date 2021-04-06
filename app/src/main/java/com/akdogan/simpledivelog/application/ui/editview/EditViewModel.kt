@@ -1,6 +1,6 @@
 
 
-package com.akdogan.simpledivelog.application.editview
+package com.akdogan.simpledivelog.application.ui.editview
 
 import android.app.Application
 import android.icu.text.DateFormat
@@ -20,13 +20,14 @@ import java.util.concurrent.TimeUnit
 
 class EditViewModelFactory(
     private val application: Application,
+    private val repo: Repository,
     private val entryId: String?
 
 ) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(EditViewModel::class.java)) {
-            return EditViewModel(application, entryId) as T
+            return EditViewModel(application, repo, entryId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
@@ -35,7 +36,8 @@ class EditViewModelFactory(
 
 class EditViewModel(
     application: Application,
-    entryId: String?
+    val repository: Repository,
+    diveLogId: String?
     // TODO Bleibt hängen wenn keine Internetverbindung
 ) : AndroidViewModel(application){
 
@@ -58,18 +60,18 @@ class EditViewModel(
     val loadRemotePicture: LiveData<Boolean>
         get() = _loadRemotePicture
 
-    var networkAvailable = Repository.networkAvailable
+    var networkAvailable = repository.networkAvailable
 
 
-    private val createNewEntry: Boolean = entryId == null
+    private val createNewEntry: Boolean = diveLogId == null
 
     private var entry: DiveLogEntry? = null
 
-    val apiError = Repository.apiError
+    val apiError = repository.apiError
 
-    val downloadStatus = Repository.downloadStatus
+    val downloadStatus = repository.downloadStatus
 
-    val uploadStatus = Repository.uploadApiStatus
+    val uploadStatus = repository.uploadApiStatus
 
     private val _navigateBack = MutableLiveData<Boolean>()
     val navigateBack: LiveData<Boolean>
@@ -130,9 +132,9 @@ class EditViewModel(
         val convertDepth = prefs.getBoolean(Constants.PREF_DEPTH_UNIT_KEY, Constants.PREF_DEPTH_UNIT_DEFAULT)
         converter = UnitConverter(convertDepth, convertPressure)
         if (createNewEntry) {
-            diveNumberInput.value = (Repository.getLatestDiveNumber() + 1).toString()
+            diveNumberInput.value = (repository.getLatestDiveNumber() + 1).toString()
         } else {
-            fetchEntry(entryId)
+            fetchEntry(diveLogId)
         }
     }
 
@@ -140,7 +142,7 @@ class EditViewModel(
     private fun fetchEntry(entryId: String?) {
         viewModelScope.launch {
             if (entryId != null) {
-                entry = Repository.getSingleDive(entryId)
+                entry = repository.getSingleDive(entryId)
                 if (entry != null) {
                     extractData()
                     onMakeToast("Element found: #${entry?.diveNumber}")
@@ -203,7 +205,7 @@ class EditViewModel(
             val newEntry = createEntry()
             // Trigger the coroutine upload in the repository
             viewModelScope.launch {
-                Repository.startUpload(
+                repository.startUpload(
                     newEntry,
                     createNewEntry,
                     uri
@@ -271,7 +273,7 @@ class EditViewModel(
     }
 
     fun onErrorDone() {
-        Repository.onErrorDone()
+        repository.onErrorDone()
     }
 
 

@@ -7,12 +7,9 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -20,24 +17,18 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.datalayer.repository.Repository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
+    private lateinit var repository: Repository
 
     // TODO: Add Login and use different users instead of only one
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //This should be done with Dependency Injection
-        lifecycleScope.launch(Dispatchers.IO) {
-            // TODO Startup is extremely slow, needs to be investigated
-            Repository.setup(applicationContext)
-            Log.d("MAIN THREAD", "End of Coroutine")
-        }
-        Log.d("MAIN THREAD", "After Coroutine")
+        // Setup Repository. This should be done with Dependency Injection
+        repository = ServiceLocator.repo
         setContentView(R.layout.activity_main)
         // Setup Action bar
         setSupportActionBar(findViewById(R.id.toolbar))
@@ -52,20 +43,17 @@ class MainActivity : AppCompatActivity() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
 
             override fun onLost(network: Network) {
-                Log.i("NETWORKING", "Network LOST: ${network.networkHandle}")
-                Repository.onNetworkLost()
+                repository.onNetworkLost()
                 super.onLost(network)
             }
 
             override fun onCapabilitiesChanged(nw: Network, caps: NetworkCapabilities) {
                 if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
-                    Log.i("NETWORKING", "Capability validated for ${nw.networkHandle}")
-                    Repository.onNetworkAvailable()
+                    repository.onNetworkAvailable()
                 }
                 super.onCapabilitiesChanged(nw, caps)
             }
         }
-        Log.i("MAIN THREAD", "End of onCreate Activity")
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -91,9 +79,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
-        Repository.networkAvailable.observe(this, Observer {
+        repository.networkAvailable.observe(this) {
             menu.findItem(R.id.action_connectivity).isVisible = !it
-        })
+        }
         return true
     }
 

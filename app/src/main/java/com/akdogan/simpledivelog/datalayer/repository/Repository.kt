@@ -16,64 +16,106 @@ import kotlinx.coroutines.delay
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+interface Repository{
 
-object Repository {
+    val networkAvailable: LiveData<Boolean>
+
+    val apiError: LiveData<Exception>
+
+    val listOfDives: LiveData<List<DiveLogEntry>>
+
+    val downloadStatus: LiveData<RepositoryDownloadStatus>
+
+    val uploadApiStatus: LiveData<RepositoryUploadProgressStatus>
+
+    fun onNetworkAvailable()
+
+    fun onNetworkLost()
+
+    suspend fun forceUpdate()
+
+    fun getLatestDiveNumber(): Int
+
+    suspend fun getSingleDive(diveId: String): DiveLogEntry?
+
+    suspend fun startUpload(
+        diveLogEntry: DiveLogEntry,
+        createNewEntry: Boolean,
+        imageUri: Uri? = null
+    )
+
+    suspend fun deleteDive(diveId: String)
+
+    suspend fun deleteAll()
+
+    fun onErrorDone()
+
+}
+
+class DefaultRepository private constructor(
+    context: Context
+) : Repository{
+
+    companion object {
+        @Volatile
+        private var INSTANCE: Repository? = null
+
+        fun getDefaultRepository(context: Context): Repository{
+            return INSTANCE ?: synchronized(this){
+                DefaultRepository(context).also {
+                    INSTANCE = it
+                }
+            }
+        }
+    }
+
     // TODO Exceptions auf sealed class fehlertypen mappen
 
     private val _networkAvailable = MutableLiveData<Boolean>()
-    val networkAvailable: LiveData<Boolean>
+    override val networkAvailable: LiveData<Boolean>
         get() = _networkAvailable
 
     private val _apiError = MutableLiveData<Exception>()
-    val apiError: LiveData<Exception>
+    override val apiError: LiveData<Exception>
         get() = _apiError
 
     private var _listOfDives: LiveData<List<DatabaseDiveLogEntry>> =
         liveData { emit(emptyList<DatabaseDiveLogEntry>()) }
-    val listOfDives: LiveData<List<DiveLogEntry>>
+    override val listOfDives: LiveData<List<DiveLogEntry>>
         get() = Transformations.map(_listOfDives) { list: List<DatabaseDiveLogEntry>? ->
             list?.asDomainModel() ?: emptyList()
         }
 
-    private lateinit var database: DiveLogDatabaseDao
+    private var database: DiveLogDatabaseDao = DiveLogDatabase.getInstance(context).diveLogDatabaseDao
 
     private val _downloadApiStatus = MutableLiveData<RepositoryDownloadStatus>()
-    val downloadStatus: LiveData<RepositoryDownloadStatus>
+    override val downloadStatus: LiveData<RepositoryDownloadStatus>
         get() = _downloadApiStatus
 
     private val _uploadApiStatus = MutableLiveData<RepositoryUploadProgressStatus>()
-    val uploadApiStatus: LiveData<RepositoryUploadProgressStatus>
+    override val uploadApiStatus: LiveData<RepositoryUploadProgressStatus>
         get() = _uploadApiStatus
 
 
-    // Called from the MainActivity to setup the database
-    suspend fun setup(
-        context: Context,
-    ) {
-        onFetching()
-        database = DiveLogDatabase.getInstance(context).diveLogDatabaseDao
+    init {
         _listOfDives = database.getAllEntriesAsLiveData()
-
-        fetchDives()
-
         CloudinaryApi.setup(context)
     }
 
-    fun onNetworkAvailable() {
+    override fun onNetworkAvailable() {
         _networkAvailable.postValue(true)
     }
 
-    fun onNetworkLost() {
+    override fun onNetworkLost() {
         _networkAvailable.postValue(false)
     }
 
-    suspend fun forceUpdate() {
+    override suspend fun forceUpdate() {
         fetchDives()
     }
 
-    fun getLatestDiveNumber(): Int {
-        val test: Int = _listOfDives.value?.maxByOrNull { it.diveNumber }?.diveNumber ?: 0
-        return test
+    override fun getLatestDiveNumber(): Int {
+        return _listOfDives.value?.maxByOrNull { it.diveNumber }?.diveNumber ?: 0
     }
 
     private fun onFetching() {
@@ -102,7 +144,7 @@ object Repository {
 
 
     // Fetched from remote into the database, then fetched from database
-    suspend fun getSingleDive(diveId: String): DiveLogEntry? {
+    override suspend fun getSingleDive(diveId: String): DiveLogEntry? {
         onFetching()
         // Delay for debugging purpose so we can actually see the loading animation
         delay(200)
@@ -117,10 +159,10 @@ object Repository {
 
 
     // Starts creation of new entry. If there is a imgUri, image upload is done first
-    suspend fun startUpload(
+    override suspend fun startUpload(
         diveLogEntry: DiveLogEntry,
         createNewEntry: Boolean,
-        imageUri: Uri? = null
+        imageUri: Uri?
     ){
         uploadStart()
         if (imageUri != null){
@@ -246,7 +288,7 @@ object Repository {
     }
 
 
-    suspend fun deleteDive(diveId: String) {
+    override suspend fun deleteDive(diveId: String) {
         onFetching()
         try {
             DiveLogApi.retrofitService.delete(diveId)
@@ -258,7 +300,7 @@ object Repository {
     }
 
 
-    suspend fun deleteAll() {
+    override suspend fun deleteAll() {
         onFetching()
         try {
             DiveLogApi.retrofitService.deleteAll()
@@ -279,7 +321,7 @@ object Repository {
         uploadDone()
     }
 
-    fun onErrorDone() {
+    override fun onErrorDone() {
         _apiError.value = null
     }
 

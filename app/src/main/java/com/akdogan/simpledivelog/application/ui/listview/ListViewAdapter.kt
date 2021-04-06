@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application.listview
+package com.akdogan.simpledivelog.application.ui.listview
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

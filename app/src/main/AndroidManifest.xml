@@ -16,7 +16,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SimpleDiveLog"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:name="com.akdogan.simpledivelog.application.SimpleDiveLogApplication">
         <activity
             android:name=".application.SettingsActivity"
             android:label="@string/title_activity_settings"
@@ -28,7 +29,7 @@
                 android:value=".application.MainActivity"/>
         </activity>
         <activity
-            android:name=".application.editview.PictureFullscreenActivity"
+            android:name="com.akdogan.simpledivelog.application.ui.editview.PictureFullscreenActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
         <activity
             android:name=".application.MainActivity"

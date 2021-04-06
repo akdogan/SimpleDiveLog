@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/ListViewFragment"
-        android:name="com.akdogan.simpledivelog.application.listview.ListViewFragment"
+        android:name="com.akdogan.simpledivelog.application.ui.listview.ListViewFragment"
         android:label="@string/fragmetn_list_label"
         tools:layout="@layout/fragment_list_view">
 
@@ -27,7 +27,7 @@
     </fragment>
     <fragment
         android:id="@+id/EditViewFragment"
-        android:name="com.akdogan.simpledivelog.application.editview.EditViewFragment"
+        android:name="com.akdogan.simpledivelog.application.ui.editview.EditViewFragment"
         android:label="@string/fragment_edit_label"
         tools:layout="@layout/fragment_edit_view">
         <argument
@@ -39,7 +39,7 @@
     </fragment>
     <fragment
         android:id="@+id/DetailViewFragment"
-        android:name="com.akdogan.simpledivelog.application.detailview.DetailViewFragment"
+        android:name="com.akdogan.simpledivelog.application.ui.detailview.DetailViewFragment"
         android:label="@string/fragment_detail_label"
         tools:layout="@layout/fragment_detail_view">
         <argument

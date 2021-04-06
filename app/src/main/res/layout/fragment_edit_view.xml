@@ -7,7 +7,7 @@
 
         <variable
             name="editViewModel"
-            type="com.akdogan.simpledivelog.application.editview.EditViewModel" />
+            type="com.akdogan.simpledivelog.application.ui.editview.EditViewModel" />
         <import type="com.akdogan.simpledivelog.diveutil.UnitConversion"/>
 
     </data>
@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="0dp"
-        tools:context=".application.editview.EditViewFragment">
+        tools:context=".application.ui.editview.EditViewFragment">
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/edit_view_upload_progress"
             android:layout_width="match_parent"
@@ -69,7 +69,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     android:id="@+id/picture_container_view"
-                    android:name="com.akdogan.simpledivelog.application.editview.PictureFragment"/>
+                    android:name="com.akdogan.simpledivelog.application.ui.editview.PictureFragment"/>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/dive_number"

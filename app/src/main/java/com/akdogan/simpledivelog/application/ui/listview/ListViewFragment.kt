@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application.listview
+package com.akdogan.simpledivelog.application.ui.listview
 
 import android.content.res.Configuration
 import android.os.Bundle
@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.akdogan.simpledivelog.R
+import com.akdogan.simpledivelog.application.ServiceLocator
 import com.akdogan.simpledivelog.databinding.FragmentListViewBinding
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 
@@ -25,7 +26,7 @@ import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 class ListViewFragment : Fragment() {
     private var t: Toast? = null
     private lateinit var mSwipeRefreshLayout: SwipeRefreshLayout
-    lateinit var listViewModel: ListViewViewModel
+    lateinit var listViewModel: ListViewModel
     lateinit var adapter: ListViewAdapter
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
@@ -34,10 +35,10 @@ class ListViewFragment : Fragment() {
         // Inflate the layout for this fragment
         val binding: FragmentListViewBinding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_list_view, container, false)
-        val application = requireNotNull(this.activity).application
-        val viewModelFactory = ListViewViewModelFactory(application)
-        // TODO Use delegate instead of factory ?
-        listViewModel = ViewModelProvider(this, viewModelFactory).get(ListViewViewModel::class.java)
+
+
+        val viewModelFactory = ListViewModelFactory(ServiceLocator.repo)
+        listViewModel = ViewModelProvider(this, viewModelFactory).get(ListViewModel::class.java)
         binding.lifecycleOwner = this
         binding.listViewViewModel = listViewModel
 

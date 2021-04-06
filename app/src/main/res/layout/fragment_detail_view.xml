@@ -7,7 +7,7 @@
 
         <variable
             name="detailViewModel"
-            type="com.akdogan.simpledivelog.application.detailview.DetailViewModel" />
+            type="com.akdogan.simpledivelog.application.ui.detailview.DetailViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

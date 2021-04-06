@@ -1,6 +1,6 @@
 package com.akdogan.simpledivelog
 
-import com.akdogan.simpledivelog.application.editview.toStringOrNull
+import com.akdogan.simpledivelog.application.ui.editview.toStringOrNull
 import com.akdogan.simpledivelog.datalayer.network.getThumbnailFromImageUrl
 import com.akdogan.simpledivelog.diveutil.getRandomDateLaterThan
 import com.akdogan.simpledivelog.diveutil.getSampleData

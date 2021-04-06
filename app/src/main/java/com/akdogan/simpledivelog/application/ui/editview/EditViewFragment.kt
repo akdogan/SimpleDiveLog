@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application.editview
+package com.akdogan.simpledivelog.application.ui.editview
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.akdogan.simpledivelog.R
+import com.akdogan.simpledivelog.application.ServiceLocator
 import com.akdogan.simpledivelog.databinding.FragmentEditViewBinding
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryUploadStatus
@@ -39,6 +40,7 @@ class EditViewFragment : Fragment() {
         val application = requireNotNull(this.activity).application
         val viewModelFactory = EditViewModelFactory(
             application,
+            ServiceLocator.repo,
             EditViewFragmentArgs.fromBundle(requireArguments()).entryId
         )
         editViewModel = ViewModelProvider(this, viewModelFactory).get(EditViewModel::class.java)

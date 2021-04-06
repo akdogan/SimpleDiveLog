@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application.editview
+package com.akdogan.simpledivelog.application.ui.editview
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -23,6 +23,7 @@ import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.akdogan.simpledivelog.R
+import com.akdogan.simpledivelog.application.ServiceLocator
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -46,8 +47,10 @@ class PictureFragment : Fragment() {
     ): View? {
 
         val application = requireNotNull(this.activity).application
-        val viewModelFactory = EditViewModelFactory(application, null)
+        val viewModelFactory = EditViewModelFactory(application, ServiceLocator.repo, null)
         // TODO Check proper way to get the proper viewModel instance
+        // !!! Seems like the viewmodel is now bound to the application lifecycle with this method
+
         // If you’re using a shared ViewModel between multiple fragments, make sure you’re using the
         // same instance in all screens. This can happen when passing the Fragment instead of the
         // Activity as the LifecycleOwner to the ViewModelProviders or using by ViewModels in a

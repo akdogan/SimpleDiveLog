@@ -8,7 +8,7 @@
 
         <variable
             name="listViewViewModel"
-            type="com.akdogan.simpledivelog.application.listview.ListViewViewModel" />
+            type="com.akdogan.simpledivelog.application.ui.listview.ListViewModel" />
     </data>
 
 
@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/light_grey"
-        tools:context=".application.listview.ListViewFragment">
+        tools:context=".application.ui.listview.ListViewFragment">
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh_layout"

@@ -1,29 +1,25 @@
 
-package com.akdogan.simpledivelog.application.detailview
+package com.akdogan.simpledivelog.application.ui.detailview
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import kotlinx.coroutines.launch
 
 // TODO Refactor all Viewmodels to standard Viewmodel if app is not needed
 class DetailViewModel(
-    application: Application,
+    val repository: Repository,
     val diveLogId: String
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val _diveLogEntry = MutableLiveData<DiveLogEntry>()
     val diveLogEntry: LiveData<DiveLogEntry>
         get() = _diveLogEntry
 
-    val apiError = Repository.apiError
+    val apiError = repository.apiError
 
-    val repositoryApiStatus = Repository.downloadStatus
+    val repositoryApiStatus = repository.downloadStatus
 
     private val _makeToast = MutableLiveData<String>()
     val makeToast: LiveData<String>
@@ -45,7 +41,7 @@ class DetailViewModel(
 
     private fun fetchDiveLogEntry() {
         viewModelScope.launch {
-            val item = Repository.getSingleDive(diveLogId)
+            val item = repository.getSingleDive(diveLogId)
             if (item == null) {
                 onMakeToast("Error: No Element found")
                 onNavigateBack()
@@ -72,9 +68,21 @@ class DetailViewModel(
     }
 
     fun onErrorDone() {
-        Repository.onErrorDone()
+        repository.onErrorDone()
     }
 
 
 }
 
+class DetailViewModelFactory(
+    private val repo: Repository,
+    private val diveLogId: String
+) : ViewModelProvider.Factory {
+    @Suppress("unchecked_cast")
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
+            return DetailViewModel(repo, diveLogId) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
