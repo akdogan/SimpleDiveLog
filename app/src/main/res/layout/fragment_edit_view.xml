@@ -76,8 +76,8 @@
                     style="@style/Widget.SimpleDiveLog.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Dive Number*"
-                    app:helperText="*Required"
+                    android:hint="@string/edit_view_dive_number_hint"
+                    app:helperText="@string/edit_view_dive_number_helper"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/picture_container_view">
 
@@ -95,8 +95,8 @@
                     style="@style/Widget.SimpleDiveLog.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Select Date*"
-                    app:helperText="*Required"
+                    android:hint="@string/edit_view_date_hint"
+                    app:helperText="@string/edit_view_date_helper"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/dive_number">
                     <com.google.android.material.textfield.TextInputEditText
@@ -112,8 +112,8 @@
                     style="@style/Widget.SimpleDiveLog.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Dive Duration (minutes)*"
-                    app:helperText="*Required"
+                    android:hint="@string/edit_view_duration_hint"
+                    app:helperText="@string/edit_view_duration_helper"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/dive_date">
 
@@ -132,8 +132,8 @@
                     style="@style/Widget.SimpleDiveLog.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Maximum Depth (feet)*"
-                    app:helperText="*Required"
+                    android:hint="@string/edit_view_maxdepth_hint"
+                    app:helperText="@string/edit_view_maxdepth_helper"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/dive_duration">
 
@@ -152,8 +152,8 @@
                     style="@style/Widget.SimpleDiveLog.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Location*"
-                    app:helperText="*Required"
+                    android:hint="@string/edit_view_location_hint"
+                    app:helperText="@string/edit_view_location_helper"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/max_depth">
 
@@ -172,7 +172,7 @@
                     style="@style/Widget.SimpleDiveLog.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Weight used (lbs)"
+                    android:hint="@string/edit_view_weight_hint"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/dive_location">
 
@@ -190,7 +190,7 @@
                     style="@style/Widget.SimpleDiveLog.TextInputLayout"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="Air in (PSI)"
+                    android:hint="@string/edit_view_air_in_hint"
                     android:layout_marginEnd="@dimen/text_input_fields_margin"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/air_out"
@@ -213,7 +213,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/text_input_fields_margin"
-                    android:hint="Air Out (PSI)"
+                    android:hint="@string/edit_view_air_out_hint"
                     app:layout_constraintTop_toBottomOf="@id/weight"
                     app:layout_constraintStart_toEndOf="@id/air_in"
                     app:layout_constraintEnd_toEndOf="parent">
@@ -233,7 +233,7 @@
                     style="@style/Widget.SimpleDiveLog.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Notes and Comments"
+                    android:hint="@string/edit_view_notes_hint"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/air_in">
 
@@ -261,7 +261,7 @@
             android:layout_marginBottom="0dp"
             android:layout_height="wrap_content"
             android:onClick="@{() -> editViewModel.onSaveButtonPressed()}"
-            android:text="SAVE"
+            android:text="@string/edit_view_button_save_label"
             android:enabled="false"
             android:minWidth="0dp"
             app:layout_constraintBottom_toBottomOf="parent"

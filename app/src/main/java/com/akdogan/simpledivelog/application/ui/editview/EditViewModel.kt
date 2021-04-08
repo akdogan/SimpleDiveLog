@@ -41,7 +41,6 @@ class EditViewModel(
     // TODO Bleibt hängen wenn keine Internetverbindung
 ) : AndroidViewModel(application){
 
-
     var contentUri: Uri? = null
         set(value) {
             if (value != null) {
@@ -238,8 +237,8 @@ class EditViewModel(
         val result = DiveLogEntry(
             entry?.dataBaseId ?: "",
             requireNotNull(diveNumber.value),
+            requireNotNull(diveDuration.value),
             converter.depthToData(requireNotNull(maxDepth.value)),
-            requireNotNull(maxDepth.value),
             requireNotNull(locationInput.value),
             requireNotNull(liveDate.value),
             weightInput.value?.toIntOrNull(),

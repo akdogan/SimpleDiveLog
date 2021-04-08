@@ -1,4 +1,3 @@
-
 package com.akdogan.simpledivelog.datalayer.network
 
 import com.squareup.moshi.Moshi
@@ -7,18 +6,17 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.*
 
-
-private const val BASE_URL = "http://ec2-3-127-80-31.eu-central-1.compute.amazonaws.com:8080"
+private const val BASE_URL = "http://ec2-3-127-80-31.eu-central-1.compute.amazonaws.com:8080/"
 
 private val moshi = Moshi.Builder()
-        .add(KotlinJsonAdapterFactory())
-        .build()
+    .add(KotlinJsonAdapterFactory())
+    .build()
 
 
 private val retrofit = Retrofit.Builder()
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .baseUrl(BASE_URL)
-        .build()
+    .addConverterFactory(MoshiConverterFactory.create(moshi))
+    .baseUrl(BASE_URL)
+    .build()
 
 // TODO Add Apis for users
 
@@ -45,6 +43,7 @@ interface DiveLogApiService {
 
 
 object DiveLogApi {
-    val retrofitService : DiveLogApiService by lazy {
-        retrofit.create(DiveLogApiService::class.java) }
+    val retrofitService: DiveLogApiService by lazy {
+        retrofit.create(DiveLogApiService::class.java)
+    }
 }

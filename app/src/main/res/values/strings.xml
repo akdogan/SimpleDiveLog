@@ -1,18 +1,18 @@
 <resources>
+    <!-- Global -->
     <string name="app_name">Simple Dive Log</string>
-    <string name="action_settings">Settings</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="fragmetn_list_label">Simple Dive Log</string>
+
+    <!-- Global Menu -->
+    <string name="menu_main_action_settings">Settings</string>
+    <string name="menu_main_offline_label">Offline</string>
+
+    <!-- Navigation Labels -->
+    <string name="fragment_list_label">Simple Dive Log</string>
     <string name="fragment_edit_label">Edit Entry</string>
     <string name="fragment_detail_label">View Entry</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
 
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-
+    <!-- List View -->
     <string name="list_entry_dive_number"># %d:</string>
-
     <string name="list_entry_dive_location"> %s</string>
     <string name="list_entry_max_depth">Maximum Depth: %d feet</string>
     <string name="list_entry_dive_duration">Dive Duration: %d minutes</string>
@@ -41,4 +41,35 @@
 
     <!-- Keys used programmatically-->
     <string name="navigated_back_key" translatable="false">navigated_back</string>
+
+    <!-- Detail View Strings -->
+    <string name="detail_view_dive_number_label">Dive Number:</string>
+    <string name="detail_view_location_label">Location:</string>
+    <string name="detail_view_duration_label">Duration:</string>
+    <string name="detail_view_maxdepth_label">Maximum Depth:</string>
+    <string name="detail_view_date_label">Date:</string>
+    <string name="menu_detail_view_edit_button_label">Edit</string>
+    <string name="detail_view_dive_number_content">#%d</string>
+
+    <string name="detail_view_duration_content">%d minutes</string>
+    <string name="detail_view_maxdepth_content">%d feet</string>
+
+    <!-- Edit View Strings -->
+    <string name="edit_view_dive_number_hint">Dive Number*</string>
+    <string name="edit_view_dive_number_helper">*Required</string>
+    <string name="edit_view_date_hint">Select Date*</string>
+    <string name="edit_view_date_helper">*Required</string>
+    <string name="edit_view_duration_hint">Dive Duration (minutes)*</string>
+    <string name="edit_view_duration_helper">*Required</string>
+    <string name="edit_view_maxdepth_hint">Maximum Depth (feet)*</string>
+    <string name="edit_view_maxdepth_helper">*Required</string>
+    <string name="edit_view_location_hint">Location*</string>
+    <string name="edit_view_location_helper">*Required</string>
+    <string name="edit_view_weight_hint">Weight used (lbs)</string>
+    <string name="edit_view_air_in_hint">Air in (PSI)</string>
+    <string name="edit_view_air_out_hint">Air Out (PSI)</string>
+    <string name="edit_view_notes_hint">Notes and Comments</string>
+    <string name="edit_view_button_save_label">SAVE</string>
+
+
 </resources>

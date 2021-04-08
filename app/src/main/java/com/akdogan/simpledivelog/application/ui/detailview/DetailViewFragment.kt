@@ -94,6 +94,7 @@ class DetailViewFragment : Fragment() {
             if (it == RepositoryDownloadStatus.DONE){
                 binding.detailViewProgressCircular.hide()
                 binding.detailViewMainContent.visibility = View.VISIBLE
+
             }
         })
 

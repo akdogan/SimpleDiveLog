@@ -6,6 +6,6 @@
         android:id="@+id/detail_view_edit_button"
         android:orderInCategory="90"
         android:icon="@drawable/ic_baseline_edit_24"
-        android:title="Edit"
+        android:title="@string/menu_detail_view_edit_button_label"
         app:showAsAction="always"/>
 </menu>

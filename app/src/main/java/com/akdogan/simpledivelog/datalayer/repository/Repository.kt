@@ -53,16 +53,20 @@ interface Repository{
 }
 
 class DefaultRepository private constructor(
-    context: Context
+    context: Context,
+    private val api: DiveLogApiService
 ) : Repository{
 
     companion object {
         @Volatile
         private var INSTANCE: Repository? = null
 
-        fun getDefaultRepository(context: Context): Repository{
+        fun getDefaultRepository(
+            context: Context,
+            api: DiveLogApiService = DiveLogApi.retrofitService
+        ): Repository{
             return INSTANCE ?: synchronized(this){
-                DefaultRepository(context).also {
+                DefaultRepository(context, api).also {
                     INSTANCE = it
                 }
             }
@@ -132,7 +136,7 @@ class DefaultRepository private constructor(
     private suspend fun fetchDives() {
         onFetching()
         try {
-            val list = DiveLogApi.retrofitService.getDives()
+            val list = api.getDives()
             database.deleteAll()
             database.insertAll(list.asDatabaseModel())
         } catch (e: Exception) {
@@ -250,7 +254,7 @@ class DefaultRepository private constructor(
 
     private suspend fun updateDiveRemote(entry: DiveLogEntry) {
         try {
-            DiveLogApi.retrofitService.updateDive(entry.asNetworkModel())
+            api.updateDive(entry.asNetworkModel())
         } catch (e: Exception) {
             onUploadErrorOccured(e)
         }
@@ -259,7 +263,7 @@ class DefaultRepository private constructor(
     // Creates a single dive on the server. API does not respond the id, so all entities need to be refetched
     private suspend fun createDiveRemote(entry: DiveLogEntry) {
         try {
-            DiveLogApi.retrofitService.createDive(entry.asNetworkModel())
+            api.createDive(entry.asNetworkModel())
         } catch (e: Exception) {
             onUploadErrorOccured(e)
         }
@@ -269,7 +273,7 @@ class DefaultRepository private constructor(
     // Tries to fetch a single dive from remote and puts in the cache. Should be followed by getSingleDiveFromDatabase
     private suspend fun getSingleDiveFromRemote(diveId: String) {
         try {
-            val networkEntry = DiveLogApi.retrofitService.getSingleDive(diveId)
+            val networkEntry = api.getSingleDive(diveId)
             if (database.checkIfEntryExists(networkEntry.dataBaseId) == 1) {
                 database.update(networkEntry.asDataBaseModel())
             } else {
@@ -291,7 +295,7 @@ class DefaultRepository private constructor(
     override suspend fun deleteDive(diveId: String) {
         onFetching()
         try {
-            DiveLogApi.retrofitService.delete(diveId)
+            api.delete(diveId)
             fetchDives()
         } catch (e: Exception) {
             onDownloadErrorOccured(e)
@@ -303,7 +307,7 @@ class DefaultRepository private constructor(
     override suspend fun deleteAll() {
         onFetching()
         try {
-            DiveLogApi.retrofitService.deleteAll()
+            api.deleteAll()
             fetchDives()
         } catch (e: Exception) {
             onDownloadErrorOccured(e)

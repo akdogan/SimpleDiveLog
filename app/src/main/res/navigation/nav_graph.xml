@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/ListViewFragment"
         android:name="com.akdogan.simpledivelog.application.ui.listview.ListViewFragment"
-        android:label="@string/fragmetn_list_label"
+        android:label="@string/fragment_list_label"
         tools:layout="@layout/fragment_list_view">
 
         <action
