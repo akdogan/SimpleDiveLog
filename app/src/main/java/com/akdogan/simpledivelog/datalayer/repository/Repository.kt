@@ -18,6 +18,8 @@ import kotlin.coroutines.suspendCoroutine
 
 interface Repository{
 
+    val loginStatus: LiveData<Boolean>
+
     val networkAvailable: LiveData<Boolean>
 
     val apiError: LiveData<Exception>
@@ -50,11 +52,15 @@ interface Repository{
 
     fun onErrorDone()
 
+    suspend fun login(username: String, pwd: String): Boolean
+
+    suspend fun register(username: String, pwd: String): Boolean
+
 }
 
 class DefaultRepository private constructor(
     context: Context,
-    private val api: DiveLogApiService
+    private val api: RemoteApi
 ) : Repository{
 
     companion object {
@@ -63,7 +69,7 @@ class DefaultRepository private constructor(
 
         fun getDefaultRepository(
             context: Context,
-            api: DiveLogApiService = DiveLogApi.retrofitService
+            api: RemoteApi = DefaultApi()
         ): Repository{
             return INSTANCE ?: synchronized(this){
                 DefaultRepository(context, api).also {
@@ -74,6 +80,8 @@ class DefaultRepository private constructor(
     }
 
     // TODO Exceptions auf sealed class fehlertypen mappen
+
+    override val loginStatus = api.loginStatus
 
     private val _networkAvailable = MutableLiveData<Boolean>()
     override val networkAvailable: LiveData<Boolean>
@@ -327,6 +335,14 @@ class DefaultRepository private constructor(
 
     override fun onErrorDone() {
         _apiError.value = null
+    }
+
+    override suspend fun login(username: String, pwd: String): Boolean {
+        return api.login(username, pwd)
+    }
+
+    override suspend fun register(username: String, pwd: String): Boolean {
+        return api.register(username, pwd)
     }
 
 

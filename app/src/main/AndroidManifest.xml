@@ -10,33 +10,32 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".application.SimpleDiveLogApplication"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SimpleDiveLog"
-        android:usesCleartextTraffic="true"
-        android:name="com.akdogan.simpledivelog.application.SimpleDiveLogApplication">
+        android:usesCleartextTraffic="true">
+        <activity android:name=".application.ui.loginview.LoginViewActivity"></activity>
         <activity
             android:name=".application.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".application.MainActivity"
             android:theme="@style/PreferenceScreen">
-
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".application.MainActivity"/>
+                android:value=".application.MainActivity" />
         </activity>
         <activity
-            android:name="com.akdogan.simpledivelog.application.ui.editview.PictureFullscreenActivity"
+            android:name=".application.ui.editview.PictureFullscreenActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
         <activity
             android:name=".application.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.SimpleDiveLog.NoActionBar"
             android:launchMode="singleTop"
-            >
+            android:theme="@style/Theme.SimpleDiveLog.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

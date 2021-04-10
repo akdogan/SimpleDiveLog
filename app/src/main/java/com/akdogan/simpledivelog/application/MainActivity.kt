@@ -16,6 +16,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.akdogan.simpledivelog.R
+import com.akdogan.simpledivelog.application.ui.loginview.LoginViewActivity
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 
 class MainActivity : AppCompatActivity() {
@@ -27,6 +28,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Check Login status
+        checkLoginStatus()
         // Setup Repository. This should be done with Dependency Injection
         repository = ServiceLocator.repo
         setContentView(R.layout.activity_main)
@@ -54,6 +57,12 @@ class MainActivity : AppCompatActivity() {
                 super.onCapabilitiesChanged(nw, caps)
             }
         }
+    }
+
+    private fun checkLoginStatus() {
+        val intent = Intent(this, LoginViewActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
     override fun onSupportNavigateUp(): Boolean {
