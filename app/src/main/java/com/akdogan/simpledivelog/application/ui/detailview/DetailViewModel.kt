@@ -3,7 +3,7 @@ package com.akdogan.simpledivelog.application.ui.detailview
 
 import android.util.Log
 import androidx.lifecycle.*
-import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import kotlinx.coroutines.launch
 

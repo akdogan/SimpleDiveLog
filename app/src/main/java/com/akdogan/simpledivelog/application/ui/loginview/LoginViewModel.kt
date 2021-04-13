@@ -1,25 +1,25 @@
 package com.akdogan.simpledivelog.application.ui.loginview
 
-import android.app.Application
-import android.util.Log
 import androidx.lifecycle.*
-import com.akdogan.simpledivelog.datalayer.repository.Repository
+import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
+import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
+import com.akdogan.simpledivelog.datalayer.repository.Result
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    application: Application,
-    val repository: Repository
-) : AndroidViewModel(application) {
+    private val authRepository: AuthRepository,
+    private val prefsRepository: PreferencesRepository
+) : ViewModel() {
 
     private var toggleIsSetToLogin = true
 
-    private val _makeToast = MutableLiveData<String>()
-    val makeToast: LiveData<String>
+    private val _makeToast = MutableLiveData<Int>()
+    val makeToast: LiveData<Int>
         get() = _makeToast
 
-    val loginStatus = repository.loginStatus
-
-
+    private val _loginStatus = MutableLiveData(false)
+    val loginStatus : LiveData<Boolean>
+        get() = _loginStatus
 
     fun useLogin() = toggleIsSetToLogin
 
@@ -34,35 +34,41 @@ class LoginViewModel(
 
         viewModelScope.launch {
             val loginAttemptResponse = when (toggleIsSetToLogin) {
-                true -> repository.login(username, pwd)
-                false -> repository.register(username, pwd)
+                true -> authRepository.login(username, pwd)
+                false -> authRepository.register(username, pwd)
             }
-            if (loginAttemptResponse){
-                saveAuthCredentials(username, pwd)
+            when (loginAttemptResponse){
+                is Result.Success -> {
+                    saveAuthCredentials(loginAttemptResponse.data)
+                    _loginStatus.postValue(true)
+                }
+                is Result.Failure -> _makeToast.postValue(loginAttemptResponse.errorCode)
             }
         }
 
     }
 
-    private fun saveAuthCredentials(username: String, pwd: String){
-        // TODO Well save the auth credentials ;)
-        Log.d("LOGIN_VIEW_MODEL", "Saving the credentials was called")
+    private fun saveAuthCredentials(token: String){
+        prefsRepository.saveCredentials(token)
     }
 
     fun makeToastDone() {
         _makeToast.value = null
     }
+
+    fun loginDone() {
+        _loginStatus.value = false
+    }
 }
 
 class LoginViewModelFactory(
-    private val application: Application,
-    private val repo: Repository
-
+    private val repo: AuthRepository,
+    private val prefsRepo: PreferencesRepository
 ) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-            return LoginViewModel(application, repo) as T
+            return LoginViewModel(repo, prefsRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

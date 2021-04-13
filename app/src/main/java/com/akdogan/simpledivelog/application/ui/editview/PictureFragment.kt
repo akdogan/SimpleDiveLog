@@ -163,6 +163,7 @@ class PictureFragment : Fragment() {
             permission
         ) == PackageManager.PERMISSION_GRANTED
 
+    // TODO Hardcoded paramstring, should be put in const maybe
     private fun openGallery() {
         val galleryIntent =
             Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {

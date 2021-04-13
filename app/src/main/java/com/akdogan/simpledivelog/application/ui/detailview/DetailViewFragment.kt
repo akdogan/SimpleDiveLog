@@ -98,7 +98,7 @@ class DetailViewFragment : Fragment() {
             }
         })
 
-        // Observe any Errors and Display the as Toast to the User
+        // Observe any ErrorCases and Display the as Toast to the User
         detailViewModel.apiError.observe(viewLifecycleOwner, { e: Exception? ->
             e?.let{
                 makeToast( "Error: $e")

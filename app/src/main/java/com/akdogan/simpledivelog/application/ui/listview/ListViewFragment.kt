@@ -123,7 +123,7 @@ class ListViewFragment : Fragment() {
             }
         })
 
-        // Observe any Errors and Display the as Toast to the User
+        // Observe any ErrorCases and Display the as Toast to the User
         listViewModel.apiError.observe(viewLifecycleOwner, { e: Exception? ->
             e?.let{
                 makeToast("Error: $e")

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.akdogan.simpledivelog">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -17,30 +18,38 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SimpleDiveLog"
-        android:usesCleartextTraffic="true">
-        <activity android:name=".application.ui.loginview.LoginViewActivity"></activity>
-        <activity
-            android:name=".application.SettingsActivity"
-            android:label="@string/title_activity_settings"
-            android:parentActivityName=".application.MainActivity"
-            android:theme="@style/PreferenceScreen">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".application.MainActivity" />
-        </activity>
-        <activity
-            android:name=".application.ui.editview.PictureFullscreenActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
-        <activity
-            android:name=".application.MainActivity"
-            android:label="@string/app_name"
+        android:usesCleartextTraffic="true"
+        >
+        <activity android:name=".application.launcher.LaunchActivity"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.SimpleDiveLog.NoActionBar">
+            android:label="Simple Dive Log"
+            android:theme="@style/Theme.FullscreenSplash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name=".application.ui.loginview.LoginViewActivity"
+            android:label="Login"/>
+        <activity
+            android:name=".application.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".application.mainactivity.MainActivity"
+            android:theme="@style/PreferenceScreen">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".application.mainactivity.MainActivity" />
+        </activity>
+        <activity
+            android:name=".application.ui.editview.PictureFullscreenActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
+        <activity
+            android:name=".application.mainactivity.MainActivity"
+            android:label="Main Activity"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.SimpleDiveLog.NoActionBar">
+
         </activity>
 
         <provider

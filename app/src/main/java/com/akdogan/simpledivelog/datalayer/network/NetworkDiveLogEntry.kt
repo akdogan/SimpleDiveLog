@@ -1,7 +1,7 @@
 package com.akdogan.simpledivelog.datalayer.network
 
 import com.akdogan.simpledivelog.datalayer.database.DatabaseDiveLogEntry
-import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.squareup.moshi.Json
 
 data class NetworkDiveLogEntry(

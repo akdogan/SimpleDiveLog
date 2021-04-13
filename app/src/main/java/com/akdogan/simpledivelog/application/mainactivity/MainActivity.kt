@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application
+package com.akdogan.simpledivelog.application.mainactivity
 //<div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 //<div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 import android.content.Intent
@@ -7,31 +7,43 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.preference.PreferenceManager
 import com.akdogan.simpledivelog.R
+import com.akdogan.simpledivelog.application.ServiceLocator
+import com.akdogan.simpledivelog.application.SettingsActivity
 import com.akdogan.simpledivelog.application.ui.loginview.LoginViewActivity
+import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
+import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesRepository
 import com.akdogan.simpledivelog.datalayer.repository.Repository
+import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_DEFAULT_VALUE
+import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_VERIFIED_KEY
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
     private lateinit var repository: Repository
+    private val viewModel: MainActivityViewModel by viewModels {
+        MainActivityViewModelFactory(
+            DefaultAuthRepository(),
+            ServiceLocator.repo,
+            DefaultPreferencesRepository(PreferenceManager.getDefaultSharedPreferences(this))
+        )
+    }
 
     // TODO: Add Login and use different users instead of only one
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Check Login status
-        checkLoginStatus()
-        // Setup Repository. This should be done with Dependency Injection
-        repository = ServiceLocator.repo
         setContentView(R.layout.activity_main)
         // Setup Action bar
         setSupportActionBar(findViewById(R.id.toolbar))
@@ -46,20 +58,34 @@ class MainActivity : AppCompatActivity() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
 
             override fun onLost(network: Network) {
-                repository.onNetworkLost()
+                viewModel.onNetworkLost()
                 super.onLost(network)
             }
 
             override fun onCapabilitiesChanged(nw: Network, caps: NetworkCapabilities) {
                 if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
-                    repository.onNetworkAvailable()
+                    viewModel.onNetworkAvailable()
                 }
                 super.onCapabilitiesChanged(nw, caps)
             }
         }
+
+
+        // Retrieve Login status and pass it to the Viewmodel
+        Log.d("LOGIN_STATUS", "MainActivity on create called. Stamp: ${(1111..9999).random()}")
+        val loginVerified = intent.getIntExtra(LOGIN_VERIFIED_KEY, LOGIN_DEFAULT_VALUE)
+        Log.i("LOGIN_STATUS", "MainActivity retrieved Loginstatus: $loginVerified")
+        viewModel.setLoginStatus(loginVerified)
+
+        viewModel.navigateToLogin.observe(this) {
+            if (it == true) {
+                navigateToLogin()
+                viewModel.onNavigateToLoginDone()
+            }
+        }
     }
 
-    private fun checkLoginStatus() {
+    private fun navigateToLogin() {
         val intent = Intent(this, LoginViewActivity::class.java)
         startActivity(intent)
         finish()
@@ -74,7 +100,9 @@ class MainActivity : AppCompatActivity() {
 
     // Registering and unregistering Network callback, should only be active while the app is active
     override fun onResume() {
-        getSystemService(ConnectivityManager::class.java).registerDefaultNetworkCallback(networkCallback)
+        getSystemService(ConnectivityManager::class.java).registerDefaultNetworkCallback(
+            networkCallback
+        )
         super.onResume()
     }
 
@@ -84,11 +112,10 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
-        repository.networkAvailable.observe(this) {
+        viewModel.networkAvailable.observe(this) {
             menu.findItem(R.id.action_connectivity).isVisible = !it
         }
         return true
@@ -99,6 +126,10 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
+            R.id.action_logout -> {
+                viewModel.logout()
+                return true
+            }
             R.id.action_settings -> {
                 val i = Intent(this, SettingsActivity::class.java)
                 startActivity(i)

@@ -8,7 +8,7 @@
     <data>
         <variable
             name="currentItem"
-            type="com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry"/>
+            type="com.akdogan.simpledivelog.datalayer.DiveLogEntry"/>
     </data>
 
     <com.google.android.material.card.MaterialCardView

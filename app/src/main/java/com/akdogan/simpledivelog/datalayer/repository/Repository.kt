@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.liveData
+import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.database.DatabaseDiveLogEntry
 import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabase
 import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
@@ -51,10 +52,6 @@ interface Repository{
     suspend fun deleteAll()
 
     fun onErrorDone()
-
-    suspend fun login(username: String, pwd: String): Boolean
-
-    suspend fun register(username: String, pwd: String): Boolean
 
 }
 
@@ -335,14 +332,6 @@ class DefaultRepository private constructor(
 
     override fun onErrorDone() {
         _apiError.value = null
-    }
-
-    override suspend fun login(username: String, pwd: String): Boolean {
-        return api.login(username, pwd)
-    }
-
-    override suspend fun register(username: String, pwd: String): Boolean {
-        return api.register(username, pwd)
     }
 
 
