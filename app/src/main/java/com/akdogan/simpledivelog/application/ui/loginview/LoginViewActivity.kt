@@ -12,9 +12,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.mainactivity.MainActivity
+import com.akdogan.simpledivelog.datalayer.ErrorCases
 import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesRepository
-import com.akdogan.simpledivelog.datalayer.repository.ErrorCases
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_SUCCESS
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_VERIFIED_KEY
 import com.google.android.material.textfield.TextInputLayout

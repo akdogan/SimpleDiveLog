@@ -1,11 +1,14 @@
 package com.akdogan.simpledivelog.datalayer.repository
 
 import android.util.Log
+import com.akdogan.simpledivelog.datalayer.Data
+import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_ERROR
+import com.akdogan.simpledivelog.datalayer.ErrorCases.LOGIN_UNAUTHORIZED
+import com.akdogan.simpledivelog.datalayer.ErrorCases.NO_INTERNET_CONNECTION
+import com.akdogan.simpledivelog.datalayer.ErrorCases.REGISTER_USER_EXISTS_ALREADY
+import com.akdogan.simpledivelog.datalayer.LoginStatus
+import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.network.DiveLogApi
-import com.akdogan.simpledivelog.datalayer.repository.ErrorCases.GENERAL_ERROR
-import com.akdogan.simpledivelog.datalayer.repository.ErrorCases.LOGIN_UNAUTHORIZED
-import com.akdogan.simpledivelog.datalayer.repository.ErrorCases.NO_INTERNET_CONNECTION
-import com.akdogan.simpledivelog.datalayer.repository.ErrorCases.REGISTER_USER_EXISTS_ALREADY
 import com.akdogan.simpledivelog.diveutil.Constants.AUTH_TEMPLATE
 import retrofit2.Response
 import java.net.UnknownHostException
@@ -26,7 +29,7 @@ class DefaultAuthRepository : AuthRepository {
     private suspend fun call(
         token: String,
         callFunction: suspend () -> Response<Data<Any>>
-    ) : Result<String>{
+    ) : Result<String> {
         try{
             val response = callFunction.invoke()
             parseResponse(response)

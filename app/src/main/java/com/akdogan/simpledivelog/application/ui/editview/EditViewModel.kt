@@ -91,7 +91,7 @@ class EditViewModel(
 
 
     // Todo Check if the transformations are actually required at all
-    // Todo Alternatively have one DiveLogEntry LiveData Object, then we dont need to extract and then put together the data again. But all fields would need to be vars
+    // Todo Alternatively have one DiveLogEntry LiveData Object, then we dont need to extract and then put together the body again. But all fields would need to be vars
     // Todo maybe make intermediate class. Could also use the copy function
     // When using livedata divelogentry object, maybe use single values with set to expose the write interface for only those values
     val diveNumberInput = MutableLiveData<String>()
@@ -209,6 +209,7 @@ class EditViewModel(
                     createNewEntry,
                     uri
                 )
+                // If there was a file to be uploaded, post a worker to clean the cache
                 uri?.let{
                     setupWorker(it)
                 }

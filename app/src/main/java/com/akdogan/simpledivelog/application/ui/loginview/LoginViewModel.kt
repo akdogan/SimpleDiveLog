@@ -3,7 +3,7 @@ package com.akdogan.simpledivelog.application.ui.loginview
 import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
-import com.akdogan.simpledivelog.datalayer.repository.Result
+import com.akdogan.simpledivelog.datalayer.Result
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
@@ -39,7 +39,7 @@ class LoginViewModel(
             }
             when (loginAttemptResponse){
                 is Result.Success -> {
-                    saveAuthCredentials(loginAttemptResponse.data)
+                    saveAuthCredentials(loginAttemptResponse.body)
                     _loginStatus.postValue(true)
                 }
                 is Result.Failure -> _makeToast.postValue(loginAttemptResponse.errorCode)

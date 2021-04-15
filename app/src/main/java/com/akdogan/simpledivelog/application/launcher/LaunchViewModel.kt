@@ -2,8 +2,8 @@ package com.akdogan.simpledivelog.application.launcher
 
 import android.util.Log
 import androidx.lifecycle.*
+import com.akdogan.simpledivelog.datalayer.LoginStatus
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
-import com.akdogan.simpledivelog.datalayer.repository.LoginStatus
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -20,17 +20,17 @@ class LaunchViewModel(
     fun validateLogin() {
         val token = prefsRepository.getCredentials()
         Log.i("LAUNCH_ACTIVITY_TRACING", "validate login: token retrieved $token")
-        token?.let{
-            viewModelScope.launch {
-                delay(3000)
+        viewModelScope.launch {
+            delay(3000)
+            token?.let {
                 val result = authRepository.validateCredentials(token)
                 Log.i("LAUNCH_VIEWMODEL", "validate with result: $result")
-                if (result == LoginStatus.FAILED){
+                if (result == LoginStatus.FAILED) {
                     purgeCredentials()
                 }
                 _userIsLoggedIn.postValue(result)
-            }
-        } ?: _userIsLoggedIn.postValue(LoginStatus.FAILED)
+            } ?: _userIsLoggedIn.postValue(LoginStatus.FAILED)
+        }
     }
 
 

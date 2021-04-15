@@ -6,12 +6,11 @@ import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
-import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.mainactivity.MainActivity
 import com.akdogan.simpledivelog.application.ui.loginview.LoginViewActivity
 import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesRepository
-import com.akdogan.simpledivelog.datalayer.repository.LoginStatus
+import com.akdogan.simpledivelog.datalayer.LoginStatus
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_SUCCESS
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_UNVERIFIED
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_VERIFIED_KEY
@@ -27,7 +26,7 @@ class LaunchActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_launch)
+        //setContentView(R.layout.activity_launch)
 
         // TODO show a toast on errors?
         viewModel.userIsLoggedIn.observe(this) {

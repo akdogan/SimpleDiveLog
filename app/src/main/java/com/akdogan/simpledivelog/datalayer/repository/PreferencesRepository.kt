@@ -18,7 +18,7 @@ class DefaultPreferencesRepository(
 ) : PreferencesRepository{
 
     companion object {
-        const val AUTH_TOKEN = "auth_token"
+        private const val AUTH_TOKEN = "auth_token"
     }
     override fun getCredentials(): String? {
         return prefs.getString(AUTH_TOKEN, null)

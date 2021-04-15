@@ -1,6 +1,7 @@
 package com.akdogan.simpledivelog.application.mainactivity
 //<div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 //<div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+// <div>Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
@@ -24,14 +25,14 @@ import com.akdogan.simpledivelog.application.SettingsActivity
 import com.akdogan.simpledivelog.application.ui.loginview.LoginViewActivity
 import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesRepository
-import com.akdogan.simpledivelog.datalayer.repository.Repository
+import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_DEFAULT_VALUE
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_VERIFIED_KEY
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
-    private lateinit var repository: Repository
+
     private val viewModel: MainActivityViewModel by viewModels {
         MainActivityViewModelFactory(
             DefaultAuthRepository(),
@@ -40,13 +41,13 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // TODO: Add Login and use different users instead of only one
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         // Setup Action bar
         setSupportActionBar(findViewById(R.id.toolbar))
+
         // Setup NavHost Fragment Navigation for the actionbar
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -54,7 +55,36 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
+        // Setup Repo Auth Token
+        setupRepoAuthToken()
+
         // setup Network check
+        setupNetworkCallback()
+
+        // Retrieve Login status and pass it to the Viewmodel
+        Log.d("LOGIN_STATUS", "MainActivity on create called. Stamp: ${(1111..9999).random()}")
+        val loginVerified = intent.getIntExtra(LOGIN_VERIFIED_KEY, LOGIN_DEFAULT_VALUE)
+        Log.i("LOGIN_STATUS", "MainActivity retrieved Loginstatus: $loginVerified")
+        viewModel.setLoginStatus(loginVerified)
+
+        viewModel.navigateToLogin.observe(this) {
+            if (it == true) {
+                navigateToLogin()
+                viewModel.onNavigateToLoginDone()
+            }
+        }
+    }
+
+    private fun setupRepoAuthToken(){
+        val token = (DefaultPreferencesRepository(
+            PreferenceManager.getDefaultSharedPreferences(this)
+        ) as PreferencesRepository).getCredentials()
+        token?.let{
+            ServiceLocator.repo.setAuthToken(token)
+        }
+    }
+
+    private fun setupNetworkCallback(){
         networkCallback = object : ConnectivityManager.NetworkCallback() {
 
             override fun onLost(network: Network) {
@@ -67,20 +97,6 @@ class MainActivity : AppCompatActivity() {
                     viewModel.onNetworkAvailable()
                 }
                 super.onCapabilitiesChanged(nw, caps)
-            }
-        }
-
-
-        // Retrieve Login status and pass it to the Viewmodel
-        Log.d("LOGIN_STATUS", "MainActivity on create called. Stamp: ${(1111..9999).random()}")
-        val loginVerified = intent.getIntExtra(LOGIN_VERIFIED_KEY, LOGIN_DEFAULT_VALUE)
-        Log.i("LOGIN_STATUS", "MainActivity retrieved Loginstatus: $loginVerified")
-        viewModel.setLoginStatus(loginVerified)
-
-        viewModel.navigateToLogin.observe(this) {
-            if (it == true) {
-                navigateToLogin()
-                viewModel.onNavigateToLoginDone()
             }
         }
     }
@@ -150,4 +166,15 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    override fun authExpired() {
+        viewModel.logout()
+    }
+}
+
+// Fragments use this to communicate to the activity that the auth token is not valid anymore
+interface AuthExpiredReceiver{
+
+    fun authExpired()
+
 }

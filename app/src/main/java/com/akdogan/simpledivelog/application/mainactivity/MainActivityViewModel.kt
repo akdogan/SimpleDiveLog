@@ -2,8 +2,8 @@ package com.akdogan.simpledivelog.application.mainactivity
 
 import android.util.Log
 import androidx.lifecycle.*
+import com.akdogan.simpledivelog.datalayer.LoginStatus
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
-import com.akdogan.simpledivelog.datalayer.repository.LoginStatus
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_SUCCESS
@@ -26,9 +26,11 @@ class MainActivityViewModel(
 
     fun logout(){
         loginStatus = LoginStatus.FAILED
-        prefsRepository.purgeCredentials()
-        // repository.deleteLocalData()
-        _navigateToLogin.value = true
+        viewModelScope.launch {
+            prefsRepository.purgeCredentials()
+            repository.cleanLogout()
+            _navigateToLogin.postValue(true)
+        }
     }
 
     fun onNavigateToLoginDone(){

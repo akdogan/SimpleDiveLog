@@ -1,6 +1,6 @@
 package com.akdogan.simpledivelog.datalayer.network
 
-import com.akdogan.simpledivelog.datalayer.repository.Data
+import com.akdogan.simpledivelog.datalayer.Data
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Response
@@ -51,8 +51,9 @@ interface DiveLogApiServiceV2{
     ): Response<Data<Any>>
 
     @GET("dives")
-    suspend fun getDives():
-            List<NetworkDiveLogEntry>
+    suspend fun getDives(
+        @Header("Authorization") authToken: String
+    ): Response<Data<List<NetworkDiveLogEntry>>>
 
     @GET("dive/{id}")
     suspend fun getSingleDive(
@@ -63,12 +64,14 @@ interface DiveLogApiServiceV2{
     @POST("dive/create")
     suspend fun createDive(
         @Body d: NetworkDiveLogEntry,
-        @Header("Authorization") authToken: String)
+        @Header("Authorization") authToken: String
+    ) : Response<Data<Any>>
 
     @PUT("dive/update")
     suspend fun updateDive(
         @Body d: NetworkDiveLogEntry,
-        @Header("Authorization") authToken: String)
+        @Header("Authorization") authToken: String
+    ) : Response<Data<Any>>
 
     @DELETE("dives")
     suspend fun deleteAll(@Header("Authorization") authToken: String)

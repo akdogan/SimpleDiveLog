@@ -7,17 +7,27 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.liveData
+import com.akdogan.simpledivelog.datalayer.Data
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.ErrorCases
+import com.akdogan.simpledivelog.datalayer.ErrorCases.CALL_SUCCESS_EMPTY_BODY
+import com.akdogan.simpledivelog.datalayer.ErrorCases.DATABASE_ERROR
+import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_ERROR
+import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
+import com.akdogan.simpledivelog.datalayer.ErrorCases.SERVER_ERROR
+import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.database.DatabaseDiveLogEntry
 import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabase
 import com.akdogan.simpledivelog.datalayer.database.DiveLogDatabaseDao
 import com.akdogan.simpledivelog.datalayer.database.asDomainModel
 import com.akdogan.simpledivelog.datalayer.network.*
 import kotlinx.coroutines.delay
+import retrofit2.Response
+import java.net.UnknownHostException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-interface Repository{
+interface Repository {
 
     val loginStatus: LiveData<Boolean>
 
@@ -35,7 +45,14 @@ interface Repository{
 
     fun onNetworkLost()
 
-    suspend fun forceUpdate()
+    /**
+     * Set the authentication token
+     * If no token is set and the api is attempted to call, an IllegalStateException will be thrown
+     * @param token The Basic Auth token to be used for the Api
+     */
+    fun setAuthToken(token: String)
+
+    suspend fun forceUpdate(): Result<Any>
 
     fun getLatestDiveNumber(): Int
 
@@ -51,25 +68,33 @@ interface Repository{
 
     suspend fun deleteAll()
 
+    suspend fun cleanLogout()
+
     fun onErrorDone()
+
 
 }
 
 class DefaultRepository private constructor(
     context: Context,
-    private val api: RemoteApi
-) : Repository{
+    private val api: RemoteApi,
+    private val database: DiveLogDatabaseDao
+) : Repository {
 
     companion object {
+        private const val TAG = "REPO_V2"
+
         @Volatile
         private var INSTANCE: Repository? = null
 
         fun getDefaultRepository(
             context: Context,
-            api: RemoteApi = DefaultApi()
-        ): Repository{
-            return INSTANCE ?: synchronized(this){
-                DefaultRepository(context, api).also {
+            api: RemoteApi = DefaultApi(),
+            database: DiveLogDatabaseDao? = null
+        ): Repository {
+            val db = database ?: DiveLogDatabase.getInstance(context).diveLogDatabaseDao
+            return INSTANCE ?: synchronized(this) {
+                DefaultRepository(context, api, db).also {
                     INSTANCE = it
                 }
             }
@@ -78,7 +103,14 @@ class DefaultRepository private constructor(
 
     // TODO Exceptions auf sealed class fehlertypen mappen
 
-    override val loginStatus = api.loginStatus
+    private val _loginStatus = MutableLiveData<Boolean>()
+    override val loginStatus: LiveData<Boolean>
+        get() = _loginStatus
+
+    private var authToken: String? = null
+
+    private fun useToken(): String =
+        authToken ?: throw IllegalStateException("Auth Token has not been setup yet")
 
     private val _networkAvailable = MutableLiveData<Boolean>()
     override val networkAvailable: LiveData<Boolean>
@@ -95,7 +127,6 @@ class DefaultRepository private constructor(
             list?.asDomainModel() ?: emptyList()
         }
 
-    private var database: DiveLogDatabaseDao = DiveLogDatabase.getInstance(context).diveLogDatabaseDao
 
     private val _downloadApiStatus = MutableLiveData<RepositoryDownloadStatus>()
     override val downloadStatus: LiveData<RepositoryDownloadStatus>
@@ -111,6 +142,30 @@ class DefaultRepository private constructor(
         CloudinaryApi.setup(context)
     }
 
+    private suspend fun <T> safeCall(
+        apiCall: suspend (String) -> Response<Data<T>>
+    ): Result<T> {
+
+        try {
+            val response = apiCall.invoke(useToken())
+            return if (response.isSuccessful) {
+                val body: T =
+                    response.body()?.data ?: return Result.Failure(CALL_SUCCESS_EMPTY_BODY)
+                Result.Success(body)
+            } else {
+                when (response.code()) {
+                    401 -> Result.Failure(GENERAL_UNAUTHORIZED)
+                    500 -> Result.Failure(SERVER_ERROR)
+                    else -> Result.Failure(GENERAL_ERROR)
+                }
+            }
+        } catch (e: UnknownHostException) {
+            return Result.Failure(ErrorCases.NO_INTERNET_CONNECTION)
+        } catch (e: Exception) {
+            return Result.Failure(GENERAL_ERROR)
+        }
+    }
+
     override fun onNetworkAvailable() {
         _networkAvailable.postValue(true)
     }
@@ -119,8 +174,12 @@ class DefaultRepository private constructor(
         _networkAvailable.postValue(false)
     }
 
-    override suspend fun forceUpdate() {
-        fetchDives()
+    override fun setAuthToken(token: String) {
+        authToken = token
+    }
+
+    override suspend fun forceUpdate(): Result<Any> {
+        return fetchDives()
     }
 
     override fun getLatestDiveNumber(): Int {
@@ -138,18 +197,49 @@ class DefaultRepository private constructor(
         }
     }
 
-    private suspend fun fetchDives() {
+    private suspend fun fetchDives(): Result<Any> {
         onFetching()
-        try {
-            val list = api.getDives()
-            database.deleteAll()
-            database.insertAll(list.asDatabaseModel())
-        } catch (e: Exception) {
-            onDownloadErrorOccured(e)
+        val result = safeCall { token ->
+            api.getDives(token)
         }
-        onFetchingDone()
-    }
+        return try {
+            if (result is Result.Success) {
+                database.deleteAll()
+                database.insertAll(result.body.asDatabaseModel())
+                Result.EmptySuccess
+            } else result
+        } catch (e: Exception) {
+            Log.i(TAG, "Database Exception: $e")
+            Result.Failure(DATABASE_ERROR)
+        } finally {
+            onFetchingDone()
+        }
 
+
+        /*try {
+            val response = api.getDives(useToken())
+            if (response.isSuccessful){
+                val list = response.body()?.data
+                list?.let{
+                    database.deleteAll()
+                    database.insertAll(list.asDatabaseModel())
+                    return Result.EmptySuccess
+                } ?: return Result.Failure(ErrorCases.GENERAL_ERROR)// TODO ?: response was empty, what should we do?
+            } else {
+                return when (response.code()){
+                    401 -> Result.Failure(ErrorCases.GENERAL_UNAUTHORIZED)
+                    else -> Result.Failure(ErrorCases.GENERAL_ERROR)
+                }
+            }
+        } catch (e: UnknownHostException) {
+            return Result.Failure(ErrorCases.NO_INTERNET_CONNECTION)
+        } catch (e: Exception) {
+            return Result.Failure(ErrorCases.GENERAL_ERROR)
+        }
+        finally {
+            onFetchingDone()
+        }*/
+    }
 
 
     // Fetched from remote into the database, then fetched from database
@@ -172,9 +262,9 @@ class DefaultRepository private constructor(
         diveLogEntry: DiveLogEntry,
         createNewEntry: Boolean,
         imageUri: Uri?
-    ){
+    ) {
         uploadStart()
-        if (imageUri != null){
+        if (imageUri != null) {
             val resultUrl = startPictureUploadCoRoutine(imageUri)
             decideUpload(diveLogEntry.copy(imgUrl = resultUrl), createNewEntry)
         } else {
@@ -183,13 +273,12 @@ class DefaultRepository private constructor(
     }
 
 
-
     // Start picture upload. Suspends execution until upload is done, url is returned
     // TODO: Check if the coroutine can run into an endless situation (maybe needs a timeout to be save?)
     private suspend fun startPictureUploadCoRoutine(
         uri: Uri,
     ): String? {
-        return suspendCoroutine {continuation ->
+        return suspendCoroutine { continuation ->
             CloudinaryApi.uploadPicture(
                 uri,
                 object : ClUploaderCallback() {
@@ -218,32 +307,41 @@ class DefaultRepository private constructor(
     }
 
     // Start upload of actual entry (create or update)
-    private suspend fun decideUpload(diveLogEntry: DiveLogEntry, createNewEntry: Boolean){
+    private suspend fun decideUpload(
+        diveLogEntry: DiveLogEntry,
+        createNewEntry: Boolean
+    ): Result<Any> {
         uploadStart()
-        if (createNewEntry){
-            createDiveRemote(diveLogEntry)
-            forceUpdate()
+        return if (createNewEntry) {
+            var res = createDiveRemote(diveLogEntry)
+            res = forceUpdate()
             uploadDone()
+            res
         } else {
             updateDiveRemote(diveLogEntry)
+            // When the dive entry does not exist, it will be created instead with the id the app sends
+            // This could cause a problem when the dive was deleted in the meantime
             getSingleDiveFromRemote(diveLogEntry.dataBaseId)
             uploadDone()
+            Result.EmptySuccess
         }
     }
 
-    private fun uploadStart(){
+    private fun uploadStart() {
         _uploadApiStatus.value = RepositoryUploadProgressStatus(
             status = RepositoryUploadStatus.INDETERMINATE_UPLOAD
         )
     }
-    private fun mediaUploadProgress(progress: Long, total: Long){
+
+    private fun mediaUploadProgress(progress: Long, total: Long) {
         _uploadApiStatus.value = RepositoryUploadProgressStatus(
             status = RepositoryUploadStatus.PROGRESS_UPLOAD,
             progress = progress,
             total = total
         )
     }
-    private fun mediaUploadDone(){
+
+    private fun mediaUploadDone() {
         _uploadApiStatus.value = RepositoryUploadProgressStatus(
             status = RepositoryUploadStatus.INDETERMINATE_UPLOAD,
             progress = 0,
@@ -251,7 +349,7 @@ class DefaultRepository private constructor(
         )
     }
 
-    private fun uploadDone(){
+    private fun uploadDone() {
         _uploadApiStatus.value = RepositoryUploadProgressStatus(
             status = RepositoryUploadStatus.DONE
         )
@@ -259,19 +357,26 @@ class DefaultRepository private constructor(
 
     private suspend fun updateDiveRemote(entry: DiveLogEntry) {
         try {
-            api.updateDive(entry.asNetworkModel())
+            api.updateDive(entry.asNetworkModel(), useToken())
         } catch (e: Exception) {
             onUploadErrorOccured(e)
         }
     }
 
     // Creates a single dive on the server. API does not respond the id, so all entities need to be refetched
-    private suspend fun createDiveRemote(entry: DiveLogEntry) {
-        try {
-            api.createDive(entry.asNetworkModel())
+    // TODO WIP IMPLEMENTATION
+    private suspend fun createDiveRemote(entry: DiveLogEntry): Result<Any> {
+        return safeCall { token ->
+            api.createDive(entry.asNetworkModel(), token)
+        }
+        /*try {
+            val response = api.createDive(entry.asNetworkModel(), useToken())
+            if (!response.isSuccessful && response.code() == 401) {
+                //unauthorizedCallDetected()
+            }
         } catch (e: Exception) {
             onUploadErrorOccured(e)
-        }
+        }*/
     }
 
 
@@ -320,12 +425,17 @@ class DefaultRepository private constructor(
         onFetchingDone()
     }
 
+    override suspend fun cleanLogout() {
+        authToken = null
+        database.deleteAll()
+    }
+
     private fun onDownloadErrorOccured(e: Exception) {
         _apiError.value = e
         _downloadApiStatus.value = RepositoryDownloadStatus.ERROR
     }
 
-    private fun onUploadErrorOccured(e: Exception){
+    private fun onUploadErrorOccured(e: Exception) {
         _apiError.value = e
         uploadDone()
     }

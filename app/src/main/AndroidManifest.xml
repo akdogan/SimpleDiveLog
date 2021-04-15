@@ -9,7 +9,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
+    <!--BEFORE in Application: android:theme="@style/@style/Theme.SimpleDiveLog" -->
     <application
         android:name=".application.SimpleDiveLogApplication"
         android:allowBackup="false"
@@ -17,7 +17,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SimpleDiveLog"
+
+        android:theme="@style/Theme.FullscreenSplash"
         android:usesCleartextTraffic="true"
         >
         <activity android:name=".application.launcher.LaunchActivity"
@@ -30,8 +31,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".application.ui.loginview.LoginViewActivity"
-            android:label="Login"/>
+            android:label="Login"
+            android:theme="@style/Theme.SimpleDiveLog"/>
+
         <activity
             android:name=".application.SettingsActivity"
             android:label="@string/title_activity_settings"
@@ -41,9 +45,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".application.mainactivity.MainActivity" />
         </activity>
+
         <activity
             android:name=".application.ui.editview.PictureFullscreenActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
+
         <activity
             android:name=".application.mainactivity.MainActivity"
             android:label="Main Activity"
