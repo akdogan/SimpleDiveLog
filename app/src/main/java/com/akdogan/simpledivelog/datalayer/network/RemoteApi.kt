@@ -7,15 +7,15 @@ interface RemoteApi {
 
     suspend fun getDives(token: String): Response<Data<List<NetworkDiveLogEntry>>>
 
-    suspend fun getSingleDive(id: String): NetworkDiveLogEntry
+    suspend fun getSingleDive(id: String, token: String): Response<Data<NetworkDiveLogEntry>>
 
     suspend fun createDive(item: NetworkDiveLogEntry, token: String): Response<Data<Any>>
 
-    suspend fun updateDive(item: NetworkDiveLogEntry, token: String)
+    suspend fun updateDive(item: NetworkDiveLogEntry, token: String): Response<Data<Any>>
 
-    suspend fun deleteAll(): Boolean
+    suspend fun deleteAll(token: String): Response<Data<Any>>
 
-    suspend fun delete(diveId: String): Boolean
+    suspend fun delete(diveId: String, token: String): Response<Data<Any>>
 
 }
 
@@ -29,26 +29,24 @@ class DefaultApi : RemoteApi {
         return apiServiceV2.getDives(token)
     }
 
-    override suspend fun getSingleDive(id: String): NetworkDiveLogEntry {
-        return apiService.getSingleDive(id)
+    override suspend fun getSingleDive(id: String, token: String): Response<Data<NetworkDiveLogEntry>> {
+        return apiServiceV2.getSingleDive(id, token)
     }
 
     override suspend fun createDive(item: NetworkDiveLogEntry, token: String): Response<Data<Any>> {
         return apiServiceV2.createDive(item, token)
     }
 
-    override suspend fun updateDive(item: NetworkDiveLogEntry, token: String) {
-        return apiService.updateDive(item)
+    override suspend fun updateDive(item: NetworkDiveLogEntry, token: String): Response<Data<Any>> {
+        return apiServiceV2.updateDive(item, token)
     }
 
-    override suspend fun deleteAll(): Boolean {
-        apiService.deleteAll()
-        return true
+    override suspend fun delete(diveId: String, token: String): Response<Data<Any>> {
+        return apiServiceV2.delete(diveId, token)
     }
 
-    override suspend fun delete(diveId: String): Boolean {
-        apiService.delete(diveId)
-        return true
+    override suspend fun deleteAll(token: String): Response<Data<Any>> {
+        return apiServiceV2.deleteAll(token)
     }
 
 }

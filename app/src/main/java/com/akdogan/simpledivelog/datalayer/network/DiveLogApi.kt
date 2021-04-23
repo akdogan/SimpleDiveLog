@@ -59,7 +59,7 @@ interface DiveLogApiServiceV2{
     suspend fun getSingleDive(
         @Path("id")id: String?,
         @Header("Authorization") authToken: String
-    ): NetworkDiveLogEntry
+    ): Response<Data<NetworkDiveLogEntry>>
 
     @POST("dive/create")
     suspend fun createDive(
@@ -74,12 +74,14 @@ interface DiveLogApiServiceV2{
     ) : Response<Data<Any>>
 
     @DELETE("dives")
-    suspend fun deleteAll(@Header("Authorization") authToken: String)
+    suspend fun deleteAll(@Header("Authorization") authToken: String
+    ) : Response<Data<Any>>
 
     @DELETE("dive/{id}")
     suspend fun delete(
         @Path("id")id: String,
-        @Header("Authorization") authToken: String)
+        @Header("Authorization") authToken: String
+    ) : Response<Data<Any>>
 }
 
 

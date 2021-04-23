@@ -1,9 +1,10 @@
-
 package com.akdogan.simpledivelog.application.ui.detailview
 
 import android.util.Log
 import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
+import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import kotlinx.coroutines.launch
 
@@ -13,16 +14,20 @@ class DetailViewModel(
     val diveLogId: String
 ) : ViewModel() {
 
+    private val _unauthorizedAccess = MutableLiveData<Boolean>()
+    val unauthorizedAccess: LiveData<Boolean>
+        get() = _unauthorizedAccess
+
     private val _diveLogEntry = MutableLiveData<DiveLogEntry>()
     val diveLogEntry: LiveData<DiveLogEntry>
         get() = _diveLogEntry
 
-    val apiError = repository.apiError
+    //val apiError = repository.apiError
 
     val repositoryApiStatus = repository.downloadStatus
 
-    private val _makeToast = MutableLiveData<String>()
-    val makeToast: LiveData<String>
+    private val _makeToast = MutableLiveData<Int>()
+    val makeToast: LiveData<Int>
         get() = _makeToast
 
     private val _navigateBack = MutableLiveData<Boolean>()
@@ -33,26 +38,31 @@ class DetailViewModel(
         fetchDiveLogEntry()
     }
 
+
     // Fragment can call refresh when it was navigated back to (from edit view)
-    fun refresh(){
+    fun refresh() {
         Log.i("NAVIGATION TEST", "refresh called")
         fetchDiveLogEntry()
     }
 
     private fun fetchDiveLogEntry() {
         viewModelScope.launch {
-            val item = repository.getSingleDive(diveLogId)
-            if (item == null) {
-                onMakeToast("Error: No Element found")
-                onNavigateBack()
+            val result = repository.getSingleDive(diveLogId)
+            if (result is Result.Failure) {
+                onMakeToast(result.errorCode)
+                when (result.errorCode) {
+                    GENERAL_UNAUTHORIZED -> _unauthorizedAccess.postValue(true)
+                    else -> onNavigateBack()
+                }
             } else {
-                _diveLogEntry.value = item
+                //_diveLogEntry.value = (result as Result.Success).body
+                _diveLogEntry.postValue((result as Result.Success).body)
             }
         }
     }
 
-    private fun onMakeToast(message: String) {
-        _makeToast.value = message
+    private fun onMakeToast(code: Int) {
+        _makeToast.postValue(code)
     }
 
     fun onMakeToastDone() {

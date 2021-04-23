@@ -10,10 +10,10 @@ import androidx.lifecycle.liveData
 import com.akdogan.simpledivelog.datalayer.Data
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.ErrorCases
-import com.akdogan.simpledivelog.datalayer.ErrorCases.CALL_SUCCESS_EMPTY_BODY
 import com.akdogan.simpledivelog.datalayer.ErrorCases.DATABASE_ERROR
 import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_ERROR
 import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
+import com.akdogan.simpledivelog.datalayer.ErrorCases.ITEM_NOT_FOUND
 import com.akdogan.simpledivelog.datalayer.ErrorCases.SERVER_ERROR
 import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.database.DatabaseDiveLogEntry
@@ -29,11 +29,9 @@ import kotlin.coroutines.suspendCoroutine
 
 interface Repository {
 
-    val loginStatus: LiveData<Boolean>
-
     val networkAvailable: LiveData<Boolean>
 
-    val apiError: LiveData<Exception>
+    val apiError: LiveData<Exception>//DELETE
 
     val listOfDives: LiveData<List<DiveLogEntry>>
 
@@ -56,21 +54,21 @@ interface Repository {
 
     fun getLatestDiveNumber(): Int
 
-    suspend fun getSingleDive(diveId: String): DiveLogEntry?
+    suspend fun getSingleDive(diveId: String): Result<DiveLogEntry>
 
     suspend fun startUpload(
         diveLogEntry: DiveLogEntry,
         createNewEntry: Boolean,
         imageUri: Uri? = null
-    )
+    ): Result<Any>
 
-    suspend fun deleteDive(diveId: String)
+    suspend fun deleteDive(diveId: String): Result<Any>
 
-    suspend fun deleteAll()
+    suspend fun deleteAll(): Result<Any>
 
     suspend fun cleanLogout()
 
-    fun onErrorDone()
+    fun onErrorDone()//DELETE
 
 
 }
@@ -101,11 +99,6 @@ class DefaultRepository private constructor(
         }
     }
 
-    // TODO Exceptions auf sealed class fehlertypen mappen
-
-    private val _loginStatus = MutableLiveData<Boolean>()
-    override val loginStatus: LiveData<Boolean>
-        get() = _loginStatus
 
     private var authToken: String? = null
 
@@ -118,7 +111,7 @@ class DefaultRepository private constructor(
 
     private val _apiError = MutableLiveData<Exception>()
     override val apiError: LiveData<Exception>
-        get() = _apiError
+        get() = _apiError // DELETE
 
     private var _listOfDives: LiveData<List<DatabaseDiveLogEntry>> =
         liveData { emit(emptyList<DatabaseDiveLogEntry>()) }
@@ -145,16 +138,19 @@ class DefaultRepository private constructor(
     private suspend fun <T> safeCall(
         apiCall: suspend (String) -> Response<Data<T>>
     ): Result<T> {
-
         try {
             val response = apiCall.invoke(useToken())
+
             return if (response.isSuccessful) {
+                Log.i(TAG, "SafeCall Response Success: ${response.code()}, ${response.body()}")
                 val body: T =
-                    response.body()?.data ?: return Result.Failure(CALL_SUCCESS_EMPTY_BODY)
+                    response.body()?.data ?: return Result.EmptySuccess//Failure(CALL_SUCCESS_EMPTY_BODY)
                 Result.Success(body)
             } else {
+                Log.i(TAG, "SafeCall Response Failure: ${response.code()}, ${response.body()}")
                 when (response.code()) {
                     401 -> Result.Failure(GENERAL_UNAUTHORIZED)
+                    404 -> Result.Failure(ITEM_NOT_FOUND)
                     500 -> Result.Failure(SERVER_ERROR)
                     else -> Result.Failure(GENERAL_ERROR)
                 }
@@ -224,7 +220,7 @@ class DefaultRepository private constructor(
                     database.deleteAll()
                     database.insertAll(list.asDatabaseModel())
                     return Result.EmptySuccess
-                } ?: return Result.Failure(ErrorCases.GENERAL_ERROR)// TODO ?: response was empty, what should we do?
+                } ?: return Result.Failure(ErrorCases.GENERAL_ERROR)
             } else {
                 return when (response.code()){
                     401 -> Result.Failure(ErrorCases.GENERAL_UNAUTHORIZED)
@@ -243,17 +239,21 @@ class DefaultRepository private constructor(
 
 
     // Fetched from remote into the database, then fetched from database
-    override suspend fun getSingleDive(diveId: String): DiveLogEntry? {
+    override suspend fun getSingleDive(diveId: String): Result<DiveLogEntry> {
         onFetching()
         // Delay for debugging purpose so we can actually see the loading animation
-        delay(200)
+        delay(1000)
         var entry = getSingleDiveFromDataBase(diveId)
         if (entry == null) {
-            getSingleDiveFromRemote(diveId)
+            val result = getSingleDiveFromRemote(diveId)
             entry = getSingleDiveFromDataBase(diveId)
+            if (entry == null){
+                onFetchingDone()
+                return result
+            }
         }
         onFetchingDone()
-        return entry
+        return Result.Success(entry)
     }
 
 
@@ -262,9 +262,9 @@ class DefaultRepository private constructor(
         diveLogEntry: DiveLogEntry,
         createNewEntry: Boolean,
         imageUri: Uri?
-    ) {
+    ) : Result<Any> {
         uploadStart()
-        if (imageUri != null) {
+        return if (imageUri != null) {
             val resultUrl = startPictureUploadCoRoutine(imageUri)
             decideUpload(diveLogEntry.copy(imgUrl = resultUrl), createNewEntry)
         } else {
@@ -355,11 +355,14 @@ class DefaultRepository private constructor(
         )
     }
 
-    private suspend fun updateDiveRemote(entry: DiveLogEntry) {
-        try {
+    private suspend fun updateDiveRemote(entry: DiveLogEntry): Result<Any> {
+        /*try {
             api.updateDive(entry.asNetworkModel(), useToken())
         } catch (e: Exception) {
             onUploadErrorOccured(e)
+        }*/
+        return safeCall { token ->
+            api.updateDive(entry.asNetworkModel(), token)
         }
     }
 
@@ -380,18 +383,30 @@ class DefaultRepository private constructor(
     }
 
 
-    // Tries to fetch a single dive from remote and puts in the cache. Should be followed by getSingleDiveFromDatabase
-    private suspend fun getSingleDiveFromRemote(diveId: String) {
-        try {
-            val networkEntry = api.getSingleDive(diveId)
-            if (database.checkIfEntryExists(networkEntry.dataBaseId) == 1) {
-                database.update(networkEntry.asDataBaseModel())
+    // Tries to fetch a single dive from remote and puts in the cache.
+    private suspend fun getSingleDiveFromRemote(diveId: String): Result<DiveLogEntry> {
+        val result = safeCall { token ->
+            api.getSingleDive(diveId, token)
+        }
+        return try {
+            if (result is Result.Success) {
+                val remoteEntry = result.body.asDataBaseModel()
+                if (database.checkIfEntryExists(remoteEntry.dataBaseId) == 1) {
+                    database.update(remoteEntry)
+                } else {
+                    database.insert(remoteEntry)
+                }
+                Result.Success(remoteEntry.asDomainModel())
             } else {
-                database.insert(networkEntry.asDataBaseModel())
+                // Cast to Failure; Api never returns type EmptySuccess
+                val error = (result as Result.Failure).errorCode
+                Result.Failure(error)
             }
         } catch (e: Exception) {
-            onDownloadErrorOccured(e)
-            Log.i("DATABASE", e.toString())
+            Log.i(TAG, "Database Exception: $e")
+            Result.Failure(DATABASE_ERROR)
+        } finally {
+            onFetchingDone()
         }
     }
 
@@ -402,27 +417,27 @@ class DefaultRepository private constructor(
     }
 
 
-    override suspend fun deleteDive(diveId: String) {
+    override suspend fun deleteDive(diveId: String): Result<Any> {
         onFetching()
-        try {
-            api.delete(diveId)
-            fetchDives()
-        } catch (e: Exception) {
-            onDownloadErrorOccured(e)
+        val result = safeCall { token ->
+            api.delete(diveId, token)
         }
+        Log.i("REPO_V2_DELETE", "DeleteDive called with result: $result")
         onFetchingDone()
+        return result
     }
 
 
-    override suspend fun deleteAll() {
+    override suspend fun deleteAll(): Result<Any> {
         onFetching()
-        try {
-            api.deleteAll()
+        val result = safeCall { token ->
+            api.deleteAll(token)
+        }
+        if (result is Result.Success){
             fetchDives()
-        } catch (e: Exception) {
-            onDownloadErrorOccured(e)
         }
         onFetchingDone()
+        return result
     }
 
     override suspend fun cleanLogout() {
@@ -430,7 +445,7 @@ class DefaultRepository private constructor(
         database.deleteAll()
     }
 
-    private fun onDownloadErrorOccured(e: Exception) {
+    /*private fun onDownloadErrorOccured(e: Exception) {
         _apiError.value = e
         _downloadApiStatus.value = RepositoryDownloadStatus.ERROR
     }
@@ -439,7 +454,7 @@ class DefaultRepository private constructor(
         _apiError.value = e
         uploadDone()
     }
-
+    */
     override fun onErrorDone() {
         _apiError.value = null
     }

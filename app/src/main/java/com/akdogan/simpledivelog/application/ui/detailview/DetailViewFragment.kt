@@ -10,7 +10,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.ServiceLocator
+import com.akdogan.simpledivelog.application.mainactivity.MainActivity
 import com.akdogan.simpledivelog.databinding.FragmentDetailViewBinding
+import com.akdogan.simpledivelog.datalayer.ErrorCases
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 
 /**
@@ -80,9 +82,9 @@ class DetailViewFragment : Fragment() {
 
 
         // Observe makeToast to display messages to the user
-        detailViewModel.makeToast.observe(viewLifecycleOwner, { message: String? ->
-            message?.let{
-                makeToast(message)
+        detailViewModel.makeToast.observe(viewLifecycleOwner, { code: Int? ->
+            code?.let{
+                makeToast(ErrorCases.getMessage(resources, it))
                 detailViewModel.onMakeToastDone()
             }
         })
@@ -98,13 +100,25 @@ class DetailViewFragment : Fragment() {
             }
         })
 
-        // Observe any ErrorCases and Display the as Toast to the User
+        // Observe the trigger for unauthorized Access
+        detailViewModel.unauthorizedAccess.observe(viewLifecycleOwner, {
+            if (it == true) {
+                try {
+                    (requireActivity() as MainActivity).authExpired()
+                } catch (e: ClassCastException){
+                    makeToast("Cast to MainActivity failed")
+                }
+            }
+        })
+
+
+        /*// Observe any ErrorCases and Display the as Toast to the User
         detailViewModel.apiError.observe(viewLifecycleOwner, { e: Exception? ->
             e?.let{
                 makeToast( "Error: $e")
                 detailViewModel.onErrorDone()
             }
-        })
+        })*/
 
         // Observe Navigation back to the List (e.g. if the element could not be found)
         detailViewModel.navigateBack.observe(viewLifecycleOwner, { act: Boolean? ->

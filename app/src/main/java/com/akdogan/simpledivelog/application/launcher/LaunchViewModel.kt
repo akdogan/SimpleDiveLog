@@ -21,7 +21,7 @@ class LaunchViewModel(
         val token = prefsRepository.getCredentials()
         Log.i("LAUNCH_ACTIVITY_TRACING", "validate login: token retrieved $token")
         viewModelScope.launch {
-            delay(3000)
+            delay(1000)
             token?.let {
                 val result = authRepository.validateCredentials(token)
                 Log.i("LAUNCH_VIEWMODEL", "validate with result: $result")
@@ -36,6 +36,7 @@ class LaunchViewModel(
 
     private fun purgeCredentials() {
         prefsRepository.purgeCredentials()
+        // TODO Also delete cache (it might be from another user)
     }
 
     fun userIsLoggedInDone() {

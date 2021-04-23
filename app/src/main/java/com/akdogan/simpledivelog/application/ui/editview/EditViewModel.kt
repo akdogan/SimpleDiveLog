@@ -12,6 +12,8 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.akdogan.simpledivelog.application.CleanupCacheWorker
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
+import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import com.akdogan.simpledivelog.diveutil.Constants
 import com.akdogan.simpledivelog.diveutil.UnitConverter
@@ -140,7 +142,7 @@ class EditViewModel(
 
     private fun fetchEntry(entryId: String?) {
         viewModelScope.launch {
-            if (entryId != null) {
+            /*if (entryId != null) {
                 entry = repository.getSingleDive(entryId)
                 if (entry != null) {
                     extractData()
@@ -148,6 +150,20 @@ class EditViewModel(
                 } else {
                     onMakeToast("Error: No Element found")
                     onNavigateBack()
+                }
+            }*/
+            if (entryId != null){
+                val result = repository.getSingleDive(entryId)
+                if (result is Result.Failure){
+                    onMakeToast("TODO erroCode")
+                    if (result.errorCode == GENERAL_UNAUTHORIZED){
+                        TODO("Not yet implemented")
+                    } else {
+                        onNavigateBack()
+                    }
+                } else {
+                    entry = (result as Result.Success).body
+                    extractData()
                 }
             }
         }

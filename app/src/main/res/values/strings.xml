@@ -75,6 +75,10 @@
     <!-- Error Messages -->
     <string name="general_error">Something went wrong, please try again</string>
     <string name="login_unauthorized">Username or password is incorrect</string>
+    <string name="server_error">Its not you, it\'s us. Server has problems, please try again later</string>
+    <string name="database_error">An database error occurred</string>
+    <string name="general_unauthorized">We couldn\'t verify your account. Please login again</string>
+    <string name="item_not_found">The item you were looking for couldn\'t be found</string>
     <string name="register_user_exists_already">The username is already taken</string>
     <string name="no_internet_connection">Unable to connect to the server. Please try again later</string>
 

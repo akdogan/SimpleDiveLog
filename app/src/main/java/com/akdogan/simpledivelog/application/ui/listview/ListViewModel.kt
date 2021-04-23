@@ -1,6 +1,9 @@
 package com.akdogan.simpledivelog.application.ui.listview
 
+import android.util.Log
 import androidx.lifecycle.*
+import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
+import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.Repository
 import com.akdogan.simpledivelog.diveutil.getSampleData
 import kotlinx.coroutines.launch
@@ -10,7 +13,11 @@ class ListViewModel(
     val repository: Repository,
 ) : ViewModel() {
 
-    val apiError = repository.apiError
+    //val apiError = repository.apiError
+
+    private val _unauthorizedAccess = MutableLiveData<Boolean>()
+    val unauthorizedAccess: LiveData<Boolean>
+        get() = _unauthorizedAccess
 
     val repositoryApiStatus = repository.downloadStatus
 
@@ -24,8 +31,8 @@ class ListViewModel(
     val navigateToDetailView: LiveData<String>
         get() = _navigateToDetailView
 
-    private val _makeToast = MutableLiveData<String>()
-    val makeToast: LiveData<String>
+    private val _makeToast = MutableLiveData<Int>()
+    val makeToast: LiveData<Int>
         get() = _makeToast
 
     init {
@@ -35,17 +42,37 @@ class ListViewModel(
     }
 
 
-    fun onErrorDone() = repository.onErrorDone()
+    //fun onErrorDone() = repository.onErrorDone()
+
+    private suspend fun <T> safeCall(
+        callFunction: suspend () -> Result<T>
+    ): Result<T> {
+        val result = callFunction.invoke()
+        if (result is Result.Failure) {
+            Log.i("REPO_V2", "Result failure called in Viewmodel with $result and ${result.errorCode}")
+            onMakeToast(result.errorCode)
+            if (result.errorCode == GENERAL_UNAUTHORIZED) {
+                _unauthorizedAccess.postValue(true)
+            }
+        }
+        return result
+    }
 
     fun onRefresh() = updateList()
 
-    private fun updateList() = viewModelScope.launch { repository.forceUpdate() }
+    private fun updateList() = viewModelScope.launch{
+        safeCall(repository::forceUpdate)
+    }
 
-    fun deleteRemoteItem(diveId: String) =
-        viewModelScope.launch { repository.deleteDive(diveId) }
+    fun deleteRemoteItem(diveId: String) = viewModelScope.launch{
+        safeCall{
+            repository.deleteDive(diveId)
+        }
+    }
 
-    fun deleteAllRemote() =
-        viewModelScope.launch { repository.deleteAll() }
+    fun deleteAllRemote() = viewModelScope.launch {
+        safeCall(repository::deleteAll)
+    }
 
 
     fun createDummyData() {
@@ -53,9 +80,10 @@ class ListViewModel(
             val latestDiveNumber = repository.getLatestDiveNumber()
             val list = getSampleData(1, latestDiveNumber)
             list.forEach {
-                repository.startUpload(it, true)
+                safeCall {
+                    repository.startUpload(it, true)
+                }
             }
-            onMakeToast("Sample Data Created")
         }
     }
 
@@ -68,8 +96,8 @@ class ListViewModel(
         _navigateToDetailView.value = null
     }
 
-    private fun onMakeToast(message: String) {
-        _makeToast.value = message
+    private fun onMakeToast(code: Int) {
+        _makeToast.postValue(code)
     }
 
     fun onMakeToastDone() {
