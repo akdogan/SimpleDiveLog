@@ -4,13 +4,13 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
 import com.akdogan.simpledivelog.datalayer.Result
-import com.akdogan.simpledivelog.datalayer.repository.Repository
+import com.akdogan.simpledivelog.datalayer.repository.DataRepository
 import com.akdogan.simpledivelog.diveutil.getSampleData
 import kotlinx.coroutines.launch
 
 
 class ListViewModel(
-    val repository: Repository,
+    val repository: DataRepository,
 ) : ViewModel() {
 
     //val apiError = repository.apiError
@@ -117,7 +117,7 @@ class ListViewModel(
 
 
 class ListViewModelFactory(
-    private val repo: Repository
+    private val repo: DataRepository
 ) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {

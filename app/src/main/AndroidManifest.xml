@@ -37,7 +37,7 @@
             android:theme="@style/Theme.SimpleDiveLog"/>
 
         <activity
-            android:name=".application.SettingsActivity"
+            android:name=".application.ui.settingsView.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".application.mainactivity.MainActivity"
             android:theme="@style/PreferenceScreen">

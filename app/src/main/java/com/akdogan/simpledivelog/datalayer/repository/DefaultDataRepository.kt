@@ -27,78 +27,31 @@ import java.net.UnknownHostException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-interface Repository {
-
-    val networkAvailable: LiveData<Boolean>
-
-    val apiError: LiveData<Exception>//DELETE
-
-    val listOfDives: LiveData<List<DiveLogEntry>>
-
-    val downloadStatus: LiveData<RepositoryDownloadStatus>
-
-    val uploadApiStatus: LiveData<RepositoryUploadProgressStatus>
-
-    fun onNetworkAvailable()
-
-    fun onNetworkLost()
-
-    /**
-     * Set the authentication token
-     * If no token is set and the api is attempted to call, an IllegalStateException will be thrown
-     * @param token The Basic Auth token to be used for the Api
-     */
-    fun setAuthToken(token: String)
-
-    suspend fun forceUpdate(): Result<Any>
-
-    fun getLatestDiveNumber(): Int
-
-    suspend fun getSingleDive(diveId: String): Result<DiveLogEntry>
-
-    suspend fun startUpload(
-        diveLogEntry: DiveLogEntry,
-        createNewEntry: Boolean,
-        imageUri: Uri? = null
-    ): Result<Any>
-
-    suspend fun deleteDive(diveId: String): Result<Any>
-
-    suspend fun deleteAll(): Result<Any>
-
-    suspend fun cleanLogout()
-
-    fun onErrorDone()//DELETE
-
-
-}
-
-class DefaultRepository private constructor(
+class DefaultDataRepository private constructor(
     context: Context,
     private val api: RemoteApi,
     private val database: DiveLogDatabaseDao
-) : Repository {
+) : DataRepository {
 
     companion object {
         private const val TAG = "REPO_V2"
 
         @Volatile
-        private var INSTANCE: Repository? = null
+        private var INSTANCE: DataRepository? = null
 
         fun getDefaultRepository(
             context: Context,
             api: RemoteApi = DefaultApi(),
             database: DiveLogDatabaseDao? = null
-        ): Repository {
+        ): DataRepository {
             val db = database ?: DiveLogDatabase.getInstance(context).diveLogDatabaseDao
             return INSTANCE ?: synchronized(this) {
-                DefaultRepository(context, api, db).also {
+                DefaultDataRepository(context, api, db).also {
                     INSTANCE = it
                 }
             }
         }
     }
-
 
     private var authToken: String? = null
 
@@ -109,17 +62,12 @@ class DefaultRepository private constructor(
     override val networkAvailable: LiveData<Boolean>
         get() = _networkAvailable
 
-    private val _apiError = MutableLiveData<Exception>()
-    override val apiError: LiveData<Exception>
-        get() = _apiError // DELETE
-
     private var _listOfDives: LiveData<List<DatabaseDiveLogEntry>> =
         liveData { emit(emptyList<DatabaseDiveLogEntry>()) }
     override val listOfDives: LiveData<List<DiveLogEntry>>
         get() = Transformations.map(_listOfDives) { list: List<DatabaseDiveLogEntry>? ->
             list?.asDomainModel() ?: emptyList()
         }
-
 
     private val _downloadApiStatus = MutableLiveData<RepositoryDownloadStatus>()
     override val downloadStatus: LiveData<RepositoryDownloadStatus>
@@ -138,13 +86,15 @@ class DefaultRepository private constructor(
     private suspend fun <T> safeCall(
         apiCall: suspend (String) -> Response<Data<T>>
     ): Result<T> {
+        Log.i(TAG, "safeCall was triggered")
         try {
             val response = apiCall.invoke(useToken())
 
             return if (response.isSuccessful) {
                 Log.i(TAG, "SafeCall Response Success: ${response.code()}, ${response.body()}")
                 val body: T =
-                    response.body()?.data ?: return Result.EmptySuccess//Failure(CALL_SUCCESS_EMPTY_BODY)
+                    response.body()?.data
+                        ?: return Result.EmptySuccess//Failure(CALL_SUCCESS_EMPTY_BODY)
                 Result.Success(body)
             } else {
                 Log.i(TAG, "SafeCall Response Failure: ${response.code()}, ${response.body()}")
@@ -158,28 +108,20 @@ class DefaultRepository private constructor(
         } catch (e: UnknownHostException) {
             return Result.Failure(ErrorCases.NO_INTERNET_CONNECTION)
         } catch (e: Exception) {
+            Log.i(TAG, "catch general e called with $e")
             return Result.Failure(GENERAL_ERROR)
         }
     }
 
-    override fun onNetworkAvailable() {
-        _networkAvailable.postValue(true)
-    }
+    override fun onNetworkAvailable() = _networkAvailable.postValue(true)
+    override fun onNetworkLost() = _networkAvailable.postValue(false)
+    override suspend fun forceUpdate(): Result<Any> = fetchDives()
 
-    override fun onNetworkLost() {
-        _networkAvailable.postValue(false)
-    }
+    override fun getLatestDiveNumber(): Int =
+        _listOfDives.value?.maxByOrNull { it.diveNumber }?.diveNumber ?: 0
 
     override fun setAuthToken(token: String) {
         authToken = token
-    }
-
-    override suspend fun forceUpdate(): Result<Any> {
-        return fetchDives()
-    }
-
-    override fun getLatestDiveNumber(): Int {
-        return _listOfDives.value?.maxByOrNull { it.diveNumber }?.diveNumber ?: 0
     }
 
     private fun onFetching() {
@@ -210,33 +152,7 @@ class DefaultRepository private constructor(
         } finally {
             onFetchingDone()
         }
-
-
-        /*try {
-            val response = api.getDives(useToken())
-            if (response.isSuccessful){
-                val list = response.body()?.data
-                list?.let{
-                    database.deleteAll()
-                    database.insertAll(list.asDatabaseModel())
-                    return Result.EmptySuccess
-                } ?: return Result.Failure(ErrorCases.GENERAL_ERROR)
-            } else {
-                return when (response.code()){
-                    401 -> Result.Failure(ErrorCases.GENERAL_UNAUTHORIZED)
-                    else -> Result.Failure(ErrorCases.GENERAL_ERROR)
-                }
-            }
-        } catch (e: UnknownHostException) {
-            return Result.Failure(ErrorCases.NO_INTERNET_CONNECTION)
-        } catch (e: Exception) {
-            return Result.Failure(ErrorCases.GENERAL_ERROR)
-        }
-        finally {
-            onFetchingDone()
-        }*/
     }
-
 
     // Fetched from remote into the database, then fetched from database
     override suspend fun getSingleDive(diveId: String): Result<DiveLogEntry> {
@@ -246,8 +162,11 @@ class DefaultRepository private constructor(
         var entry = getSingleDiveFromDataBase(diveId)
         if (entry == null) {
             val result = getSingleDiveFromRemote(diveId)
+            if (result is Result.Failure){
+                return result
+            }
             entry = getSingleDiveFromDataBase(diveId)
-            if (entry == null){
+            if (entry == null) {
                 onFetchingDone()
                 return result
             }
@@ -262,8 +181,10 @@ class DefaultRepository private constructor(
         diveLogEntry: DiveLogEntry,
         createNewEntry: Boolean,
         imageUri: Uri?
-    ) : Result<Any> {
+    ): Result<Any> {
         uploadStart()
+        delay(4000)
+        Log.i(TAG, "Start upload called with create new: $createNewEntry")
         return if (imageUri != null) {
             val resultUrl = startPictureUploadCoRoutine(imageUri)
             decideUpload(diveLogEntry.copy(imgUrl = resultUrl), createNewEntry)
@@ -271,7 +192,6 @@ class DefaultRepository private constructor(
             decideUpload(diveLogEntry, createNewEntry)
         }
     }
-
 
     // Start picture upload. Suspends execution until upload is done, url is returned
     // TODO: Check if the coroutine can run into an endless situation (maybe needs a timeout to be save?)
@@ -282,23 +202,19 @@ class DefaultRepository private constructor(
             CloudinaryApi.uploadPicture(
                 uri,
                 object : ClUploaderCallback() {
-
                     override fun clOnError() {
                         mediaUploadDone()
                         continuation.resume(null)
                     }
-
                     override fun clOnSuccess(result: String?) {
                         mediaUploadDone()
                         Log.i("UPLOADSTATUS", "OnSuccessCalled")
                         continuation.resume(result)
                     }
-
                     override fun clOnReschedule() {
                         mediaUploadDone()
                         continuation.resume(null)
                     }
-
                     override fun clOnProgress(bytes: Long, totalBytes: Long) {
                         mediaUploadProgress(bytes, totalBytes)
                     }
@@ -307,24 +223,99 @@ class DefaultRepository private constructor(
     }
 
     // Start upload of actual entry (create or update)
+    // TODO When there is no proper internet connection, the app just hangs..
     private suspend fun decideUpload(
         diveLogEntry: DiveLogEntry,
         createNewEntry: Boolean
     ): Result<Any> {
         uploadStart()
         return if (createNewEntry) {
+            //TODO Get remote id from the result and only fetch that item into the database
             var res = createDiveRemote(diveLogEntry)
-            res = forceUpdate()
+            if (res !is Result.Failure) {
+                res = forceUpdate()
+            }
             uploadDone()
             res
         } else {
-            updateDiveRemote(diveLogEntry)
+            var res = updateDiveRemote(diveLogEntry)
             // When the dive entry does not exist, it will be created instead with the id the app sends
             // This could cause a problem when the dive was deleted in the meantime
-            getSingleDiveFromRemote(diveLogEntry.dataBaseId)
+            if (res !is Result.Failure) {
+                res = getSingleDiveFromRemote(diveLogEntry.dataBaseId)
+            }
             uploadDone()
-            Result.EmptySuccess
+            res
         }
+    }
+
+    private suspend fun updateDiveRemote(entry: DiveLogEntry): Result<Any> = safeCall { token ->
+        api.updateDive(entry.asNetworkModel(), token)
+    }
+
+    // Creates a single dive on the server.
+    // API does not respond the id, so all entities need to be refetched
+    private suspend fun createDiveRemote(entry: DiveLogEntry): Result<Any> = safeCall { token ->
+        api.createDive(entry.asNetworkModel(), token)
+    }
+
+    // Tries to fetch a single dive from remote and puts in the cache.
+    private suspend fun getSingleDiveFromRemote(diveId: String): Result<DiveLogEntry> {
+        val result = safeCall { token ->
+            api.getSingleDive(diveId, token)
+        }
+        Log.i(TAG, "getSingleDiveFromRemote() called with result: $result for diveId: $diveId")
+        return try {
+            if (result is Result.Success) {
+                val remoteEntry = result.body.asDataBaseModel()
+                if (database.checkIfEntryExists(remoteEntry.dataBaseId) == 1) {
+                    database.update(remoteEntry)
+                } else {
+                    database.insert(remoteEntry)
+                }
+                Result.Success(remoteEntry.asDomainModel())
+            } else {
+                // Cast to Failure; Api never returns type EmptySuccess
+                val error = (result as Result.Failure).errorCode
+                Result.Failure(error)
+            }
+        } catch (e: Exception) {
+            Log.i(TAG, "Database Exception: $e")
+            Result.Failure(DATABASE_ERROR)
+        } finally {
+            onFetchingDone()
+        }
+    }
+
+    // Tries to fetch a single dive from the cache and returns it, or returns null if no such element exists
+    private suspend fun getSingleDiveFromDataBase(diveId: String): DiveLogEntry? =
+        database.get(diveId)?.asDomainModel()
+
+    override suspend fun deleteDive(diveId: String): Result<Any> {
+        onFetching()
+        val result = safeCall { token ->
+            api.delete(diveId, token)
+        }
+        Log.i("REPO_V2_DELETE", "DeleteDive called with result: $result")
+        onFetchingDone()
+        return result
+    }
+
+    override suspend fun deleteAll(): Result<Any> {
+        onFetching()
+        val result = safeCall { token ->
+            api.deleteAll(token)
+        }
+        if (result is Result.Success) {
+            fetchDives()
+        }
+        onFetchingDone()
+        return result
+    }
+
+    override suspend fun cleanLogout() {
+        authToken = null
+        database.deleteAll()
     }
 
     private fun uploadStart() {
@@ -355,153 +346,5 @@ class DefaultRepository private constructor(
         )
     }
 
-    private suspend fun updateDiveRemote(entry: DiveLogEntry): Result<Any> {
-        /*try {
-            api.updateDive(entry.asNetworkModel(), useToken())
-        } catch (e: Exception) {
-            onUploadErrorOccured(e)
-        }*/
-        return safeCall { token ->
-            api.updateDive(entry.asNetworkModel(), token)
-        }
-    }
-
-    // Creates a single dive on the server. API does not respond the id, so all entities need to be refetched
-    // TODO WIP IMPLEMENTATION
-    private suspend fun createDiveRemote(entry: DiveLogEntry): Result<Any> {
-        return safeCall { token ->
-            api.createDive(entry.asNetworkModel(), token)
-        }
-        /*try {
-            val response = api.createDive(entry.asNetworkModel(), useToken())
-            if (!response.isSuccessful && response.code() == 401) {
-                //unauthorizedCallDetected()
-            }
-        } catch (e: Exception) {
-            onUploadErrorOccured(e)
-        }*/
-    }
-
-
-    // Tries to fetch a single dive from remote and puts in the cache.
-    private suspend fun getSingleDiveFromRemote(diveId: String): Result<DiveLogEntry> {
-        val result = safeCall { token ->
-            api.getSingleDive(diveId, token)
-        }
-        return try {
-            if (result is Result.Success) {
-                val remoteEntry = result.body.asDataBaseModel()
-                if (database.checkIfEntryExists(remoteEntry.dataBaseId) == 1) {
-                    database.update(remoteEntry)
-                } else {
-                    database.insert(remoteEntry)
-                }
-                Result.Success(remoteEntry.asDomainModel())
-            } else {
-                // Cast to Failure; Api never returns type EmptySuccess
-                val error = (result as Result.Failure).errorCode
-                Result.Failure(error)
-            }
-        } catch (e: Exception) {
-            Log.i(TAG, "Database Exception: $e")
-            Result.Failure(DATABASE_ERROR)
-        } finally {
-            onFetchingDone()
-        }
-    }
-
-    // Tries to fetch a single dive from the cache and returns it, or returns null if no such element exists
-    private suspend fun getSingleDiveFromDataBase(diveId: String): DiveLogEntry? {
-        val entry = database.get(diveId)
-        return entry?.asDomainModel()
-    }
-
-
-    override suspend fun deleteDive(diveId: String): Result<Any> {
-        onFetching()
-        val result = safeCall { token ->
-            api.delete(diveId, token)
-        }
-        Log.i("REPO_V2_DELETE", "DeleteDive called with result: $result")
-        onFetchingDone()
-        return result
-    }
-
-
-    override suspend fun deleteAll(): Result<Any> {
-        onFetching()
-        val result = safeCall { token ->
-            api.deleteAll(token)
-        }
-        if (result is Result.Success){
-            fetchDives()
-        }
-        onFetchingDone()
-        return result
-    }
-
-    override suspend fun cleanLogout() {
-        authToken = null
-        database.deleteAll()
-    }
-
-    /*private fun onDownloadErrorOccured(e: Exception) {
-        _apiError.value = e
-        _downloadApiStatus.value = RepositoryDownloadStatus.ERROR
-    }
-
-    private fun onUploadErrorOccured(e: Exception) {
-        _apiError.value = e
-        uploadDone()
-    }
-    */
-    override fun onErrorDone() {
-        _apiError.value = null
-    }
-
-
 }
 
-// Todo Maybe find better way with nested enum or sealed class / Api status object with status enum and error enum
-enum class RepositoryDownloadStatus {
-    FETCHING,
-    DONE,
-    ERROR
-}
-
-enum class RepositoryUploadStatus {
-    INDETERMINATE_UPLOAD,
-    PROGRESS_UPLOAD,
-    DONE
-}
-
-
-data class RepositoryUploadProgressStatus(
-    val status: RepositoryUploadStatus = RepositoryUploadStatus.DONE,
-    val progress: Long = 0L,
-    val total: Long = 0L,
-) {
-    val percentage: Int
-        get() {
-            return if (total > 0) {
-                (progress.toInt() / (total.toInt() / 100))
-            } else {
-                0
-            }
-        }
-}
-
-
-// TODO Cleanup, not sure if I need this
-abstract class ClUploaderCallback {
-    open fun clOnSuccess(result: String?) {}
-
-    open fun clOnProgress(bytes: Long, totalBytes: Long) {}
-
-    open fun clOnReschedule() {}
-
-    open fun clOnError() {}
-
-    open fun clOnStart() {}
-
-}

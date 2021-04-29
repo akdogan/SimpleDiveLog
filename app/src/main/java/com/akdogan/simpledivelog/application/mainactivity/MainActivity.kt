@@ -21,7 +21,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.preference.PreferenceManager
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.ServiceLocator
-import com.akdogan.simpledivelog.application.SettingsActivity
+import com.akdogan.simpledivelog.application.ui.settingsView.SettingsActivity
 import com.akdogan.simpledivelog.application.ui.loginview.LoginViewActivity
 import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesRepository

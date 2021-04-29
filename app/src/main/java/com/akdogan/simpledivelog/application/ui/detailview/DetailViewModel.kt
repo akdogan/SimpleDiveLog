@@ -5,12 +5,12 @@ import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
 import com.akdogan.simpledivelog.datalayer.Result
-import com.akdogan.simpledivelog.datalayer.repository.Repository
+import com.akdogan.simpledivelog.datalayer.repository.DataRepository
 import kotlinx.coroutines.launch
 
 // TODO Refactor all Viewmodels to standard Viewmodel if app is not needed
 class DetailViewModel(
-    val repository: Repository,
+    val repository: DataRepository,
     val diveLogId: String
 ) : ViewModel() {
 
@@ -21,8 +21,6 @@ class DetailViewModel(
     private val _diveLogEntry = MutableLiveData<DiveLogEntry>()
     val diveLogEntry: LiveData<DiveLogEntry>
         get() = _diveLogEntry
-
-    //val apiError = repository.apiError
 
     val repositoryApiStatus = repository.downloadStatus
 
@@ -55,7 +53,6 @@ class DetailViewModel(
                     else -> onNavigateBack()
                 }
             } else {
-                //_diveLogEntry.value = (result as Result.Success).body
                 _diveLogEntry.postValue((result as Result.Success).body)
             }
         }
@@ -77,15 +74,13 @@ class DetailViewModel(
         _navigateBack.value = false
     }
 
-    fun onErrorDone() {
-        repository.onErrorDone()
-    }
+
 
 
 }
 
 class DetailViewModelFactory(
-    private val repo: Repository,
+    private val repo: DataRepository,
     private val diveLogId: String
 ) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")

@@ -3,10 +3,13 @@ package com.akdogan.simpledivelog.datalayer.network
 import com.akdogan.simpledivelog.datalayer.Data
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.*
+import java.util.concurrent.TimeUnit
 
 private const val BASE_URL = "http://ec2-3-127-80-31.eu-central-1.compute.amazonaws.com:8080/"
 private const val BASE_URL_V2 = "http://ec2-3-127-80-31.eu-central-1.compute.amazonaws.com:8080/v2/"
@@ -90,10 +93,24 @@ private val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
     .build()
 
+private val okHttpLogger = HttpLoggingInterceptor()
+    .setLevel(HttpLoggingInterceptor.Level.BODY)
+
+private val okHttpClient: OkHttpClient = OkHttpClient.Builder()
+    .connectTimeout(10, TimeUnit.SECONDS)
+    .callTimeout(10, TimeUnit.SECONDS)
+    .writeTimeout(10, TimeUnit.SECONDS)
+    .readTimeout(10, TimeUnit.SECONDS)
+    .retryOnConnectionFailure(false)
+    .addInterceptor(okHttpLogger)
+    .build()
+
 private val retrofitV2 = Retrofit.Builder()
     .addConverterFactory(MoshiConverterFactory.create(moshi))
     .baseUrl(BASE_URL_V2)
+    .client(okHttpClient)
     .build()
+
 
 
 

@@ -6,8 +6,9 @@ import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.ServiceLocator
 import com.akdogan.simpledivelog.application.mainactivity.MainActivity
@@ -21,9 +22,13 @@ import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 class DetailViewFragment : Fragment() {
     private var t: Toast? = null
     private lateinit var binding : FragmentDetailViewBinding
-    private lateinit var detailViewModel: DetailViewModel
-    // TODO Use by navArgs instead of retrieving manually from bundle
-    //private val args: DetailViewFragmentArgs by navArgs()
+    private val args: DetailViewFragmentArgs by navArgs()
+    private val detailViewModel: DetailViewModel by viewModels{
+        DetailViewModelFactory(
+            ServiceLocator.repo,
+            args.diveLogId
+        )
+    }
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
@@ -32,8 +37,7 @@ class DetailViewFragment : Fragment() {
         // Inflate the layout for this fragment
         binding = DataBindingUtil.inflate(
                 inflater, R.layout.fragment_detail_view, container, false)
-        val viewModelFactory = DetailViewModelFactory(ServiceLocator.repo, DetailViewFragmentArgs.fromBundle(requireArguments()).diveLogId)
-        detailViewModel = ViewModelProvider(this, viewModelFactory).get(DetailViewModel::class.java)
+
         binding.lifecycleOwner = this
         binding.detailViewModel = detailViewModel
 
@@ -110,15 +114,6 @@ class DetailViewFragment : Fragment() {
                 }
             }
         })
-
-
-        /*// Observe any ErrorCases and Display the as Toast to the User
-        detailViewModel.apiError.observe(viewLifecycleOwner, { e: Exception? ->
-            e?.let{
-                makeToast( "Error: $e")
-                detailViewModel.onErrorDone()
-            }
-        })*/
 
         // Observe Navigation back to the List (e.g. if the element could not be found)
         detailViewModel.navigateBack.observe(viewLifecycleOwner, { act: Boolean? ->

@@ -16,7 +16,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.ServiceLocator
+import com.akdogan.simpledivelog.application.mainactivity.MainActivity
 import com.akdogan.simpledivelog.databinding.FragmentEditViewBinding
+import com.akdogan.simpledivelog.datalayer.ErrorCases
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryUploadStatus
 import com.google.android.material.textfield.TextInputEditText
@@ -81,18 +83,21 @@ class EditViewFragment : Fragment() {
         })
 
         // Observe when to present a message to the user
-        editViewModel.makeToast.observe(viewLifecycleOwner, { message: String? ->
-            message?.let{
-                makeToast(message)
+        editViewModel.makeToast.observe(viewLifecycleOwner, { code: Int? ->
+            code?.let{
+                makeToast(ErrorCases.getMessage(resources, code))
                 editViewModel.onMakeToastFinished()
             }
         })
 
-        // Observe exceptions to display a message to the user
-        editViewModel.apiError.observe(viewLifecycleOwner, { e: Exception? ->
-            e?.let{
-                makeToast(e.toString())
-                editViewModel.onErrorDone()
+        // Observe unauthorized access and trigger logout if true
+        editViewModel.unauthorizedAccess.observe(viewLifecycleOwner, {
+            if (it == true) {
+                try {
+                    (requireActivity() as MainActivity).authExpired()
+                } catch (e: ClassCastException){
+                    makeToast("Cast to MainActivity failed")
+                }
             }
         })
 
@@ -110,6 +115,7 @@ class EditViewFragment : Fragment() {
             // Switch off upload, verify progress bar is not shown anymore
             // Maybe create fragment and activity in test? then control from fragment check in activity
             it?.let{
+                Log.i("OFFLINE_UPLOAD", "upload status observer called with ${it.status}")
                 when (it.status){
                     RepositoryUploadStatus.INDETERMINATE_UPLOAD -> {
                         binding.editViewUploadProgress.apply {

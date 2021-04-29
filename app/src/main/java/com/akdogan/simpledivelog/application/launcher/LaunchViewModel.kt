@@ -24,7 +24,7 @@ class LaunchViewModel(
             delay(1000)
             token?.let {
                 val result = authRepository.validateCredentials(token)
-                Log.i("LAUNCH_VIEWMODEL", "validate with result: $result")
+                Log.i("LAUNCH_ACTIVITY_TRACING", "validate with result: $result")
                 if (result == LoginStatus.FAILED) {
                     purgeCredentials()
                 }

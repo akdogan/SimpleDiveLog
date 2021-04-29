@@ -95,7 +95,7 @@ class LoginViewActivity : AppCompatActivity() {
     }
 
     private fun setRegisterView() {
-        passwordRepeatField.visibility = View.VISIBLE
+        //passwordRepeatField.visibility = View.VISIBLE
         loginRegisterButton.text = "Register"
         loginRegisterSwitch.text = "Login instead"
     }

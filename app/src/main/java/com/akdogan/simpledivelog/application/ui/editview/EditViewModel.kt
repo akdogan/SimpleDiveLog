@@ -1,10 +1,9 @@
-
-
 package com.akdogan.simpledivelog.application.ui.editview
 
 import android.app.Application
 import android.icu.text.DateFormat
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.*
 import androidx.preference.PreferenceManager
 import androidx.work.OneTimeWorkRequestBuilder
@@ -14,15 +13,17 @@ import com.akdogan.simpledivelog.application.CleanupCacheWorker
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
 import com.akdogan.simpledivelog.datalayer.Result
-import com.akdogan.simpledivelog.datalayer.repository.Repository
+import com.akdogan.simpledivelog.datalayer.repository.DataRepository
+
 import com.akdogan.simpledivelog.diveutil.Constants
 import com.akdogan.simpledivelog.diveutil.UnitConverter
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
+// TODO Remove Application access and use preferences repo instead
 class EditViewModelFactory(
     private val application: Application,
-    private val repo: Repository,
+    private val repo: DataRepository,
     private val entryId: String?
 
 ) : ViewModelProvider.Factory {
@@ -38,10 +39,9 @@ class EditViewModelFactory(
 
 class EditViewModel(
     application: Application,
-    val repository: Repository,
+    val repository: DataRepository,
     diveLogId: String?
-    // TODO Bleibt hängen wenn keine Internetverbindung
-) : AndroidViewModel(application){
+) : AndroidViewModel(application) {
 
     var contentUri: Uri? = null
         set(value) {
@@ -68,7 +68,7 @@ class EditViewModel(
 
     private var entry: DiveLogEntry? = null
 
-    val apiError = repository.apiError
+    //val apiError = repository.apiError
 
     val downloadStatus = repository.downloadStatus
 
@@ -82,9 +82,13 @@ class EditViewModel(
     val savingInProgress: LiveData<Boolean>
         get() = _savingInProgress
 
-    private val _makeToast = MutableLiveData<String>()
-    val makeToast: LiveData<String>
+    private val _makeToast = MutableLiveData<Int>()
+    val makeToast: LiveData<Int>
         get() = _makeToast
+
+    private val _unauthorizedAccess = MutableLiveData<Boolean>()
+    val unauthorizedAccess: LiveData<Boolean>
+        get() = _unauthorizedAccess
 
     val weightInput = MutableLiveData<String>()
     val airInInput = MutableLiveData<String>()
@@ -129,8 +133,10 @@ class EditViewModel(
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(getApplication())
 
-        val convertPressure = prefs.getBoolean(Constants.PREF_PRESSURE_UNIT_KEY, Constants.PREF_PRESSURE_UNIT_DEAFULT)
-        val convertDepth = prefs.getBoolean(Constants.PREF_DEPTH_UNIT_KEY, Constants.PREF_DEPTH_UNIT_DEFAULT)
+        val convertPressure =
+            prefs.getBoolean(Constants.PREF_PRESSURE_UNIT_KEY, Constants.PREF_PRESSURE_UNIT_DEAFULT)
+        val convertDepth =
+            prefs.getBoolean(Constants.PREF_DEPTH_UNIT_KEY, Constants.PREF_DEPTH_UNIT_DEFAULT)
         converter = UnitConverter(convertDepth, convertPressure)
         if (createNewEntry) {
             diveNumberInput.value = (repository.getLatestDiveNumber() + 1).toString()
@@ -142,24 +148,13 @@ class EditViewModel(
 
     private fun fetchEntry(entryId: String?) {
         viewModelScope.launch {
-            /*if (entryId != null) {
-                entry = repository.getSingleDive(entryId)
-                if (entry != null) {
-                    extractData()
-                    onMakeToast("Element found: #${entry?.diveNumber}")
-                } else {
-                    onMakeToast("Error: No Element found")
-                    onNavigateBack()
-                }
-            }*/
-            if (entryId != null){
+            if (entryId != null) {
                 val result = repository.getSingleDive(entryId)
-                if (result is Result.Failure){
-                    onMakeToast("TODO erroCode")
-                    if (result.errorCode == GENERAL_UNAUTHORIZED){
-                        TODO("Not yet implemented")
-                    } else {
-                        onNavigateBack()
+                if (result is Result.Failure) {
+                    onMakeToast(result.errorCode)
+                    when (result.errorCode) {
+                        GENERAL_UNAUTHORIZED -> _unauthorizedAccess.postValue(true)
+                        else -> onNavigateBack()
                     }
                 } else {
                     entry = (result as Result.Success).body
@@ -190,8 +185,6 @@ class EditViewModel(
     }
 
 
-
-
     private fun checkEnableSaveButton(): Boolean {
         return diveNumber.value != null &&
                 liveDate.value != null &&
@@ -209,36 +202,42 @@ class EditViewModel(
         }
     }
 
-    fun uploadDone(){
+    fun uploadDone() {
         onNavigateBack()
         _savingInProgress.value = false
     }
 
     private fun startUploadCoroutine() {
         val uri = contentUri
-        try {
-            val newEntry = createEntry()
-            // Trigger the coroutine upload in the repository
-            viewModelScope.launch {
-                repository.startUpload(
-                    newEntry,
-                    createNewEntry,
-                    uri
-                )
+        val newEntry = createEntry()
+        // Trigger the coroutine upload in the repository
+        viewModelScope.launch {
+            // Take the result and react to it
+            // ViewModelScope.launch should maybe wrap the whole function.
+            // Also not sure if we need try / catch anymore
+            val result = repository.startUpload(
+                newEntry,
+                createNewEntry,
+                uri
+            )
+            Log.i("UPLOAD_TRACING", "Upload result is: $result")
+            if (result is Result.Failure) {
+                Log.i("UPLOAD_TRACING", "Upload Failure code: ${result.errorCode}")
+                _makeToast.postValue(result.errorCode)
+                if (result.errorCode == GENERAL_UNAUTHORIZED){
+                    _unauthorizedAccess.postValue(true)
+                }
+            } else {
                 // If there was a file to be uploaded, post a worker to clean the cache
-                uri?.let{
+                uri?.let {
                     setupWorker(it)
                 }
-                uploadDone()
             }
-
-        } catch (e: java.lang.IllegalArgumentException) {
-            onMakeToast("Try create entry catch block called with $e")
             uploadDone()
         }
     }
 
-    fun setupWorker(localUri: Uri){
+    fun setupWorker(localUri: Uri) {
         val filename = localUri.lastPathSegment
         val oneTimeRequest = OneTimeWorkRequestBuilder<CleanupCacheWorker>()
             .setInputData(workDataOf(Constants.CACHE_CLEANUP_WORKER_FILENAME_KEY to filename))
@@ -264,7 +263,7 @@ class EditViewModel(
             notesInput.value,
             imgUrl
         )
-        onMakeToast("New Entry Created")
+        //onMakeToast("New Entry Created")
         return result
     }
 
@@ -280,18 +279,13 @@ class EditViewModel(
         _liveDate.value = timeInMillis
     }
 
-    private fun onMakeToast(message: String) {
-        _makeToast.value = message
+    private fun onMakeToast(code: Int) {
+        _makeToast.postValue(code)
     }
 
     fun onMakeToastFinished() {
         _makeToast.value = null
     }
-
-    fun onErrorDone() {
-        repository.onErrorDone()
-    }
-
 
 
 

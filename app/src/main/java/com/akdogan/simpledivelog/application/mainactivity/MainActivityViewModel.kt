@@ -5,14 +5,14 @@ import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.LoginStatus
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
-import com.akdogan.simpledivelog.datalayer.repository.Repository
+import com.akdogan.simpledivelog.datalayer.repository.DataRepository
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_SUCCESS
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_UNVERIFIED
 import kotlinx.coroutines.launch
 
 class MainActivityViewModel(
     private val authRepository: AuthRepository,
-    private val repository: Repository,
+    private val repository: DataRepository,
     private val prefsRepository: PreferencesRepository
 ) : ViewModel() {
 
@@ -71,7 +71,7 @@ class MainActivityViewModel(
 
 class MainActivityViewModelFactory(
     private val authRepo: AuthRepository,
-    private val repo: Repository,
+    private val repo: DataRepository,
     private val prefsRepo: PreferencesRepository
 
 ) : ViewModelProvider.Factory {

@@ -11,6 +11,7 @@ import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.network.DiveLogApi
 import com.akdogan.simpledivelog.diveutil.Constants.AUTH_TEMPLATE
 import retrofit2.Response
+import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.*
 
@@ -31,11 +32,14 @@ class DefaultAuthRepository : AuthRepository {
         callFunction: suspend () -> Response<Data<Any>>
     ) : Result<String> {
         try{
+            Log.i("LAUNCH_ACTIVITY_TRACING", "call functino called before invoke")
             val response = callFunction.invoke()
+            Log.i("LAUNCH_ACTIVITY_TRACING", "call function called after invoke with response $response")
             parseResponse(response)
             return if (response.isSuccessful) {
                 Result.Success(token)
             } else {
+                Log.i("LAUNCH_ACTIVITY_TRACING", "response failure with code: ${response.code()}")
                 when (response.code()){
                     401 -> Result.Failure(LOGIN_UNAUTHORIZED)
                     400 -> Result.Failure(REGISTER_USER_EXISTS_ALREADY)
@@ -44,7 +48,10 @@ class DefaultAuthRepository : AuthRepository {
             }
         } catch (e: UnknownHostException) {
             return Result.Failure(NO_INTERNET_CONNECTION)
+        } catch (e: SocketTimeoutException){
+            return Result.Failure(NO_INTERNET_CONNECTION)
         } catch (e: Exception) {
+            Log.i("LAUNCH_ACTIVITY_TRACING", "Exception block with e: $e")
             return Result.Failure(GENERAL_ERROR)
         }
     }
@@ -65,6 +72,7 @@ class DefaultAuthRepository : AuthRepository {
         val result = call(token){
             apiService.login(token)
         }
+        // TODO return a Response so the viewmodel can still react to the errors
         return if (result is Result.Failure){
             when (result.errorCode){
                 LOGIN_UNAUTHORIZED -> LoginStatus.FAILED
