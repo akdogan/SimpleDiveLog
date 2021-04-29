@@ -5,27 +5,12 @@ import android.widget.TextView
 import androidx.databinding.BindingAdapter
 import androidx.databinding.InverseMethod
 import com.akdogan.simpledivelog.R
-import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import kotlin.math.round
 
 
 object UnitConversion {
-    /*@InverseMethod("depthDisplayToDate")
-    fun depthDataToDisplay(depth: Int, useMetric: Boolean): String? {
-        var result = depth
-        if (!useMetric){
-            result = round(depth * 3.2808).toInt()
-        }
-        return result.toString()
-    }
 
-    fun depthDisplayToData(string: String, useMetric: Boolean): Int? {
-        var result = string.toIntOrNull()
-        if (result != null && !useMetric){
-            result = round(result / 3.2808).toInt()
-        }
-        return result
-    }*/
     @InverseMethod("stringToDate")
     @JvmStatic fun dateToString(
         value: Int?

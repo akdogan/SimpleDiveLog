@@ -3,7 +3,7 @@ package com.akdogan.simpledivelog.datalayer.database
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 
 @Entity(tableName = "dive_log_table")
 data class DatabaseDiveLogEntry(

@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId "com.akdogan.simpledivelog"
-        minSdkVersion 24
+        minSdkVersion 26
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -75,6 +75,7 @@ dependencies {
     implementation "com.squareup.moshi:moshi-kotlin:$version_moshi"
     implementation "com.squareup.retrofit2:retrofit:$version_retrofit"
     implementation "com.squareup.retrofit2:converter-moshi:$version_retrofit"
+    implementation "com.squareup.okhttp3:logging-interceptor:4.9.1"
 
     implementation "com.cloudinary:cloudinary-android:1.30.0"
 

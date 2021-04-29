@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.databinding.ListEntryViewBinding
 import com.akdogan.simpledivelog.datalayer.network.getThumbnailFromImageUrl
-import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 

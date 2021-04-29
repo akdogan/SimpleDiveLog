@@ -1,5 +1,5 @@
 
-package com.akdogan.simpledivelog.datalayer.repository
+package com.akdogan.simpledivelog.datalayer
 
 data class DiveLogEntry(
         var dataBaseId: String,

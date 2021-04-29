@@ -1,7 +1,7 @@
 package com.akdogan.simpledivelog.diveutil
 
 
-import com.akdogan.simpledivelog.datalayer.repository.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 
 
 

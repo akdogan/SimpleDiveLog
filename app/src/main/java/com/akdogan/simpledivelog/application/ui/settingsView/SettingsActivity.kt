@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application
+package com.akdogan.simpledivelog.application.ui.settingsView
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

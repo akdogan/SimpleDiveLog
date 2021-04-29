@@ -5,6 +5,7 @@
     <!-- Global Menu -->
     <string name="menu_main_action_settings">Settings</string>
     <string name="menu_main_offline_label">Offline</string>
+    <string name="menu_main_action_logout_label">Logout</string>
 
     <!-- Navigation Labels -->
     <string name="fragment_list_label">Simple Dive Log</string>
@@ -71,5 +72,14 @@
     <string name="edit_view_notes_hint">Notes and Comments</string>
     <string name="edit_view_button_save_label">SAVE</string>
 
+    <!-- Error Messages -->
+    <string name="general_error">Something went wrong, please try again</string>
+    <string name="login_unauthorized">Username or password is incorrect</string>
+    <string name="server_error">Its not you, it\'s us. Server has problems, please try again later</string>
+    <string name="database_error">An database error occurred</string>
+    <string name="general_unauthorized">We couldn\'t verify your account. Please login again</string>
+    <string name="item_not_found">The item you were looking for couldn\'t be found</string>
+    <string name="register_user_exists_already">The username is already taken</string>
+    <string name="no_internet_connection">Unable to connect to the server. Please try again later</string>
 
 </resources>

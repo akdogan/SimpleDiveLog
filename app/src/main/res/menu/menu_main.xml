@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.akdogan.simpledivelog.application.MainActivity">
+    tools:context="com.akdogan.simpledivelog.application.mainactivity.MainActivity">
     <item
         android:id="@+id/action_connectivity"
         android:icon="@drawable/ic_baseline_cloud_off_24"
@@ -13,4 +13,8 @@
         android:orderInCategory="100"
         android:title="@string/menu_main_action_settings"
         app:showAsAction="never" />
+    <item android:id="@+id/action_logout"
+        android:orderInCategory="200"
+        android:title="@string/menu_main_action_logout_label"
+        app:showAsAction="never"/>
 </menu>
