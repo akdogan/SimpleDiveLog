@@ -10,6 +10,16 @@ sealed class Result<out T> {
     class Failure(val errorCode: Int) : Result<Nothing>()
 }
 
+// Maybe better
+sealed class Result2<out T> {
+    open class Success2<out T> : Result2<T>(){
+        class SuccessWithData<out T>(val body: T) : Success2<T>()
+        class SuccessEmpty : Success2<Nothing>()
+    }
+    class Failure(val errorCode: Int) : Result2<Nothing>()
+}
+
+
 // TODO: some apis have data, others not. Write a custom converter Adapter Maybe
 data class Data<out T>(
     val data: T?,

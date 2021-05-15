@@ -74,11 +74,15 @@ class ListViewModel(
         safeCall(repository::deleteAll)
     }
 
+    fun createDummyEntry() = createDummyData()
 
-    fun createDummyData() {
+    fun createMultipleDummyEntries(amount: Int) = createDummyData(amount)
+
+
+    private fun createDummyData(amount: Int = 1) {
         viewModelScope.launch {
             val latestDiveNumber = repository.getLatestDiveNumber()
-            val list = getSampleData(1, latestDiveNumber)
+            val list = getSampleData(amount, latestDiveNumber)
             list.forEach {
                 safeCall {
                     repository.startUpload(it, true)
