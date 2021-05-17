@@ -35,6 +35,9 @@ class ListViewModel(
     val makeToast: LiveData<Int>
         get() = _makeToast
 
+    var sampleDataCreated: Boolean? = null
+        private set
+
     init {
         viewModelScope.launch {
             repository.forceUpdate()
@@ -42,14 +45,15 @@ class ListViewModel(
     }
 
 
-    //fun onErrorDone() = repository.onErrorDone()
-
     private suspend fun <T> safeCall(
         callFunction: suspend () -> Result<T>
     ): Result<T> {
         val result = callFunction.invoke()
         if (result is Result.Failure) {
-            Log.i("REPO_V2", "Result failure called in Viewmodel with $result and ${result.errorCode}")
+            Log.i(
+                "REPO_V2",
+                "Result failure called in Viewmodel with $result and ${result.errorCode}"
+            )
             onMakeToast(result.errorCode)
             if (result.errorCode == GENERAL_UNAUTHORIZED) {
                 _unauthorizedAccess.postValue(true)
@@ -60,12 +64,12 @@ class ListViewModel(
 
     fun onRefresh() = updateList()
 
-    private fun updateList() = viewModelScope.launch{
+    private fun updateList() = viewModelScope.launch {
         safeCall(repository::forceUpdate)
     }
 
-    fun deleteRemoteItem(diveId: String) = viewModelScope.launch{
-        safeCall{
+    fun deleteRemoteItem(diveId: String) = viewModelScope.launch {
+        safeCall {
             repository.deleteDive(diveId)
         }
     }
@@ -76,7 +80,11 @@ class ListViewModel(
 
     fun createDummyEntry() = createDummyData()
 
-    fun createMultipleDummyEntries(amount: Int) = createDummyData(amount)
+    fun createMultipleDummyEntries(amount: Int) {
+        createDummyData(amount)
+        sampleDataCreated = true
+
+    }
 
 
     private fun createDummyData(amount: Int = 1) {
@@ -87,7 +95,7 @@ class ListViewModel(
                 val result = safeCall {
                     repository.startUpload(it, true)
                 }
-                if (result is Result.Failure){
+                if (result is Result.Failure) {
                     return@forEach
                 }
             }

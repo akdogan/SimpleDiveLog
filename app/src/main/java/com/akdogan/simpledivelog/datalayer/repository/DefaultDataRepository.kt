@@ -184,7 +184,7 @@ class DefaultDataRepository private constructor(
         imageUri: Uri?
     ): Result<Any> {
         uploadStart()
-        delay(4000)
+        //delay(4000)
         Log.i(TAG, "Start upload called with create new: $createNewEntry")
         return if (imageUri != null) {
             val resultUrl = startPictureUploadCoRoutine(imageUri)

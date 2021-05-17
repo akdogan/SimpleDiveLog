@@ -66,8 +66,10 @@ class ListViewFragment : Fragment() {
     }
 
     private fun createSampleData(){
-        makeToast(getString(R.string.message_creating_sample_data), true)
-        listViewModel.createMultipleDummyEntries(5)
+        if (listViewModel.sampleDataCreated != true){
+            makeToast(getString(R.string.message_creating_sample_data), true)
+            listViewModel.createMultipleDummyEntries(5)
+        }
     }
 
     // Todo: Add search to actionbar as collapsible action view
@@ -109,7 +111,6 @@ class ListViewFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         listViewModel.listOfLogEntries.observe(viewLifecycleOwner, { list ->
             list?.let {
-                Log.i("Refresh Tracing", "listOfLogentries called")
                 adapter.dataSet = list
             }
         })
@@ -163,11 +164,6 @@ class ListViewFragment : Fragment() {
             }
         })
 
-    }
-
-    override fun onDestroy() {
-        Log.i("LIST_VIEW_LIFECYCLE", "On Destroy called")
-        super.onDestroy()
     }
 
     private fun makeToast(message: String, showLonger: Boolean = false) {
