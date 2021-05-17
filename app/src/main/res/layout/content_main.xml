@@ -4,7 +4,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/main_view_upload_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:showAnimationBehavior="none"
+        app:hideAnimationBehavior="none"
+        android:visibility="invisible"
+        android:elevation="2dp"
+        android:layout_gravity="center"
+        android:progress="70"
+        android:indeterminate="true"
+        style="@style/Widget.SimpleDiveLog.LinearProgressIndicator"
+        />
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
@@ -15,5 +30,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:navGraph="@navigation/nav_graph" />
+
+         />
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--app:navGraph="@navigation/nav_graph"-->

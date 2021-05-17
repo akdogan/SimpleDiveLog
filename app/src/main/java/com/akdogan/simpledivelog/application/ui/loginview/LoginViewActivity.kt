@@ -2,7 +2,6 @@ package com.akdogan.simpledivelog.application.ui.loginview
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
@@ -17,6 +16,7 @@ import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesRepository
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_SUCCESS
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_VERIFIED_KEY
+import com.akdogan.simpledivelog.diveutil.Constants.NEW_REGISTERED_USER_KEY
 import com.google.android.material.textfield.TextInputLayout
 
 class LoginViewActivity : AppCompatActivity() {
@@ -56,7 +56,6 @@ class LoginViewActivity : AppCompatActivity() {
         }
 
         viewModel.loginStatus.observe(this) { userIsLoggedIn: Boolean? ->
-            Log.i("LOGIN_TEST", "Login Activity observer called with: $userIsLoggedIn")
             if (userIsLoggedIn == true) {
                 proceed()
                 viewModel.loginDone()
@@ -68,6 +67,7 @@ class LoginViewActivity : AppCompatActivity() {
         val intent = Intent(this, MainActivity::class.java)
         // Login is verified, only possible to login from here by checking against the server
         intent.putExtra(LOGIN_VERIFIED_KEY, LOGIN_SUCCESS)
+        intent.putExtra(NEW_REGISTERED_USER_KEY, viewModel.isUserRegistering())
         startActivity(intent)
         finish()
     }
@@ -102,7 +102,7 @@ class LoginViewActivity : AppCompatActivity() {
 
     private fun showWarningDialog() {
         AlertDialog.Builder(this)
-            .setTitle(android.R.string.dialog_alert_title)
+            .setTitle("Warning")
             .setMessage(
                 "This is an example app.\nTraffic is plaintext and not secured.\n\nPlease do " +
                         "NOT use any real passwords"

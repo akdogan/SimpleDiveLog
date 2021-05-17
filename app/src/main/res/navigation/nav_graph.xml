@@ -10,6 +10,10 @@
         android:name="com.akdogan.simpledivelog.application.ui.listview.ListViewFragment"
         android:label="@string/fragment_list_label"
         tools:layout="@layout/fragment_list_view">
+        <argument
+            android:name="createSampleData"
+            app:argType="boolean"
+            android:defaultValue="false"/>
 
         <action
             android:id="@+id/action_ListViewFragment_to_EditViewFragment"

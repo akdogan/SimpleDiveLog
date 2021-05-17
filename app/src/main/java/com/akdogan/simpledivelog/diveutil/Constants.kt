@@ -15,6 +15,11 @@ object Constants{
     const val LOGIN_UNVERIFIED = 22
     const val LOGIN_DEFAULT_VALUE = -1
 
+    // used to communicate from LoginActivity to MainActivity
+    const val NEW_REGISTERED_USER_KEY = "new_registered_user_key"
+    const val CREATE_SAMPLE_DATA = "createSampleData"
+
+
     // Auth Template
     const val AUTH_TEMPLATE = "Basic "
 }

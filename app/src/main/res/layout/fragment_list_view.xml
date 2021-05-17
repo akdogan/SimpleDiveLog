@@ -68,7 +68,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
-            android:onClick="@{() -> listViewViewModel.createDummyData()}"
+            android:onClick="@{() -> listViewViewModel.createDummyEntry()}"
             app:layout_constraintBottom_toTopOf="@id/fab"
             app:layout_constraintRight_toRightOf="parent"
             app:srcCompat="@drawable/ic_baseline_filter_9_plus_24" />

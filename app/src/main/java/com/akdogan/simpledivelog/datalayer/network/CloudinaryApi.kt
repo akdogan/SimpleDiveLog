@@ -60,6 +60,7 @@ object CloudinaryApi {
     }
 }
 
+
 fun getThumbnailFromImageUrl(url: String?): String? {
     url?.let {
         val parameters = "c_thumb,g_auto:classic,ar_1:1,w_200/"

@@ -1,9 +1,9 @@
 package com.akdogan.simpledivelog.application.ui.loginview
 
 import androidx.lifecycle.*
+import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
-import com.akdogan.simpledivelog.datalayer.Result
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
@@ -26,6 +26,8 @@ class LoginViewModel(
     fun toggleLogin() {
         toggleIsSetToLogin = !toggleIsSetToLogin
     }
+
+    fun isUserRegistering() = !toggleIsSetToLogin
 
     fun startRequest(
         username: String,
