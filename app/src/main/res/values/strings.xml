@@ -18,6 +18,7 @@
     <string name="list_entry_max_depth">Maximum Depth: %d feet</string>
     <string name="list_entry_dive_duration">Dive Duration: %d minutes</string>
     <string name="title_activity_settings">SettingsActivity</string>
+    <string name="message_creating_sample_data">Welcome! Creating some sample Data for you</string>
 
     <!-- Preference Titles -->
     <string name="units_header">Units</string>

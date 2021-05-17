@@ -11,6 +11,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -33,6 +34,8 @@ class ListViewFragment : Fragment() {
         ListViewModelFactory(ServiceLocator.repo)
     }
 
+    private val args: ListViewFragmentArgs by navArgs()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -52,9 +55,19 @@ class ListViewFragment : Fragment() {
         mSwipeRefreshLayout = binding.swipeRefreshLayout
         mSwipeRefreshLayout.setOnRefreshListener { listViewModel.onRefresh() }
 
+        // Create Dummy Data if account was just created
+        if (args.createSampleData){
+            createSampleData()
+        }
 
-        Log.i("MAIN THREAD", "End of onCreate Fragment")
+        Log.i("LIST_VIEW_LIFECYCLE", "On Create called")
+
         return binding.root
+    }
+
+    private fun createSampleData(){
+        makeToast(getString(R.string.message_creating_sample_data), true)
+        listViewModel.createMultipleDummyEntries(5)
     }
 
     // Todo: Add search to actionbar as collapsible action view
@@ -152,11 +165,21 @@ class ListViewFragment : Fragment() {
 
     }
 
-    private fun makeToast(message: String) {
+    override fun onDestroy() {
+        Log.i("LIST_VIEW_LIFECYCLE", "On Destroy called")
+        super.onDestroy()
+    }
+
+    private fun makeToast(message: String, showLonger: Boolean = false) {
         if (t != null) {
             t?.cancel()
         }
-        t = Toast.makeText(context, message, Toast.LENGTH_SHORT)
+        val length = if (showLonger){
+            Toast.LENGTH_LONG
+        } else {
+            Toast.LENGTH_SHORT
+        }
+        t = Toast.makeText(context, message, length)
         t?.show()
     }
 

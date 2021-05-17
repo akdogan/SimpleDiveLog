@@ -8,7 +8,6 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -28,8 +27,10 @@ import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryUploadStatus
+import com.akdogan.simpledivelog.diveutil.Constants.CREATE_SAMPLE_DATA
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_DEFAULT_VALUE
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_VERIFIED_KEY
+import com.akdogan.simpledivelog.diveutil.Constants.NEW_REGISTERED_USER_KEY
 import com.google.android.material.progressindicator.LinearProgressIndicator
 
 class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
@@ -52,11 +53,7 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
         setSupportActionBar(findViewById(R.id.toolbar))
 
         // Setup NavHost Fragment Navigation for the actionbar
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHostFragment.navController
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
+        setupNavigation()
 
         // Setup Repo Auth Token
         setupRepoAuthToken()
@@ -68,9 +65,7 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
         setupProgressListener()
 
         // Retrieve Login status and pass it to the Viewmodel
-        Log.d("LOGIN_STATUS", "MainActivity on create called. Stamp: ${(1111..9999).random()}")
         val loginVerified = intent.getIntExtra(LOGIN_VERIFIED_KEY, LOGIN_DEFAULT_VALUE)
-        Log.i("LOGIN_STATUS", "MainActivity retrieved Loginstatus: $loginVerified")
         viewModel.setLoginStatus(loginVerified)
 
         viewModel.navigateToLogin.observe(this) {
@@ -81,7 +76,23 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
         }
     }
 
-    private fun setupProgressListener(){
+    fun setupNavigation() {
+        // Setup NavHost with Args for StartDestination
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
+        val bundle = Bundle()
+        // Check if sample data should be created and put the information in the bundle
+        // Bundle is passed to the start destination (listViewFragment)
+        val createDummyContent = intent.getBooleanExtra(NEW_REGISTERED_USER_KEY, false)
+        bundle.putBoolean(CREATE_SAMPLE_DATA, createDummyContent)
+        // setup the graph including the bundle for the start destination args
+        navController.setGraph(R.navigation.nav_graph, bundle)
+        appBarConfiguration = AppBarConfiguration(navController.graph)
+        setupActionBarWithNavController(navController, appBarConfiguration)
+    }
+
+    private fun setupProgressListener() {
         //  Turns on the linear progress animation when uploading
         viewModel.uploadStatus.observe(this, {
             // TODO Create Espresso Test
@@ -91,13 +102,13 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
             // Switch to indeterminate, verify progress bar is shown indeterminate
             // Switch off upload, verify progress bar is not shown anymore
             // Maybe create fragment and activity in test? then control from fragment check in activity
-            it?.let{
-                Log.i("MAIN_ACTIVITY_UPLOAD_INDICATOR", "upload status observer called with ${it.status}")
-                val progressBar = findViewById<LinearProgressIndicator>(R.id.main_view_upload_progress)
-                when (it.status){
+            it?.let {
+                val progressBar =
+                    findViewById<LinearProgressIndicator>(R.id.main_view_upload_progress)
+                when (it.status) {
                     RepositoryUploadStatus.INDETERMINATE_UPLOAD -> {
                         progressBar.apply {
-                            if (!this.isIndeterminate){
+                            if (!this.isIndeterminate) {
                                 visibility = View.INVISIBLE
                                 this.isIndeterminate = true
                                 this.progress = 70
@@ -108,8 +119,8 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
                         }
                     }
                     RepositoryUploadStatus.PROGRESS_UPLOAD -> {
-                        progressBar.apply{
-                            if (this.isIndeterminate){
+                        progressBar.apply {
+                            if (this.isIndeterminate) {
                                 this.setProgressCompat(it.percentage, true)
                             } else {
                                 this.progress = it.percentage
@@ -124,19 +135,18 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
                 }
             }
         })
-
     }
 
-    private fun setupRepoAuthToken(){
+    private fun setupRepoAuthToken() {
         val token = (DefaultPreferencesRepository(
             PreferenceManager.getDefaultSharedPreferences(this)
         ) as PreferencesRepository).getCredentials()
-        token?.let{
+        token?.let {
             ServiceLocator.repo.setAuthToken(token)
         }
     }
 
-    private fun setupNetworkCallback(){
+    private fun setupNetworkCallback() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
 
             override fun onLost(network: Network) {
@@ -164,7 +174,6 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
         return navController.navigateUp(appBarConfiguration)
                 || super.onSupportNavigateUp()
     }
-
 
     // Registering and unregistering Network callback, should only be active while the app is active
     override fun onResume() {
@@ -225,8 +234,9 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
 }
 
 // Fragments use this to communicate to the activity that the auth token is not valid anymore
-interface AuthExpiredReceiver{
+interface AuthExpiredReceiver {
 
     fun authExpired()
+
 
 }

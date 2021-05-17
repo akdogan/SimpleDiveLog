@@ -84,8 +84,11 @@ class ListViewModel(
             val latestDiveNumber = repository.getLatestDiveNumber()
             val list = getSampleData(amount, latestDiveNumber)
             list.forEach {
-                safeCall {
+                val result = safeCall {
                     repository.startUpload(it, true)
+                }
+                if (result is Result.Failure){
+                    return@forEach
                 }
             }
         }
