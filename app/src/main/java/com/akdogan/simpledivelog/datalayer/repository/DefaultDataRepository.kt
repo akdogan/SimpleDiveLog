@@ -92,6 +92,7 @@ class DefaultDataRepository private constructor(
 
             return if (response.isSuccessful) {
                 Log.i(TAG, "SafeCall Response Success: ${response.code()}, ${response.body()}")
+
                 val body: T =
                     response.body()?.data
                         ?: return Result.EmptySuccess//Failure(CALL_SUCCESS_EMPTY_BODY)
@@ -292,24 +293,30 @@ class DefaultDataRepository private constructor(
         database.get(diveId)?.asDomainModel()
 
     override suspend fun deleteDive(diveId: String): Result<Any> {
-        onFetching()
+        uploadStart()
         val result = safeCall { token ->
             api.delete(diveId, token)
         }
+        if (result !is Result.Failure){
+            fetchDives()
+        }
         Log.i("REPO_V2_DELETE", "DeleteDive called with result: $result")
-        onFetchingDone()
+        uploadDone()
         return result
     }
 
     override suspend fun deleteAll(): Result<Any> {
-        onFetching()
+        uploadStart()
         val result = safeCall { token ->
             api.deleteAll(token)
         }
-        if (result is Result.Success) {
+        // TODO API returns an empty array instead of enpty json on success.
+        // Until fixed, this is a workaround
+        /*if (result !is Result.Failure) {
             fetchDives()
-        }
-        onFetchingDone()
+        }*/
+        fetchDives()
+        uploadDone()
         return result
     }
 

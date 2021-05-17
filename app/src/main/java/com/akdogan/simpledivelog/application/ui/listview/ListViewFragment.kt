@@ -96,6 +96,7 @@ class ListViewFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         listViewModel.listOfLogEntries.observe(viewLifecycleOwner, { list ->
             list?.let {
+                Log.i("Refresh Tracing", "listOfLogentries called")
                 adapter.dataSet = list
             }
         })

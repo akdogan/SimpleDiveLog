@@ -11,6 +11,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -21,13 +22,15 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.preference.PreferenceManager
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.ServiceLocator
-import com.akdogan.simpledivelog.application.ui.settingsView.SettingsActivity
 import com.akdogan.simpledivelog.application.ui.loginview.LoginViewActivity
+import com.akdogan.simpledivelog.application.ui.settingsView.SettingsActivity
 import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
+import com.akdogan.simpledivelog.datalayer.repository.RepositoryUploadStatus
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_DEFAULT_VALUE
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_VERIFIED_KEY
+import com.google.android.material.progressindicator.LinearProgressIndicator
 
 class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -61,6 +64,9 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
         // setup Network check
         setupNetworkCallback()
 
+        // setup UploadIndicator
+        setupProgressListener()
+
         // Retrieve Login status and pass it to the Viewmodel
         Log.d("LOGIN_STATUS", "MainActivity on create called. Stamp: ${(1111..9999).random()}")
         val loginVerified = intent.getIntExtra(LOGIN_VERIFIED_KEY, LOGIN_DEFAULT_VALUE)
@@ -73,6 +79,52 @@ class MainActivity : AppCompatActivity(), AuthExpiredReceiver {
                 viewModel.onNavigateToLoginDone()
             }
         }
+    }
+
+    private fun setupProgressListener(){
+        //  Turns on the linear progress animation when uploading
+        viewModel.uploadStatus.observe(this, {
+            // TODO Create Espresso Test
+            // Start Progress indeterminate, verifiy progress bar is shown indeterminate
+            // Switch to determinate progress, verify progress is shown determinate
+            // Increment progress, verify progress displayed matches
+            // Switch to indeterminate, verify progress bar is shown indeterminate
+            // Switch off upload, verify progress bar is not shown anymore
+            // Maybe create fragment and activity in test? then control from fragment check in activity
+            it?.let{
+                Log.i("MAIN_ACTIVITY_UPLOAD_INDICATOR", "upload status observer called with ${it.status}")
+                val progressBar = findViewById<LinearProgressIndicator>(R.id.main_view_upload_progress)
+                when (it.status){
+                    RepositoryUploadStatus.INDETERMINATE_UPLOAD -> {
+                        progressBar.apply {
+                            if (!this.isIndeterminate){
+                                visibility = View.INVISIBLE
+                                this.isIndeterminate = true
+                                this.progress = 70
+                                this.visibility = View.VISIBLE
+                            } else {
+                                this.visibility = View.VISIBLE
+                            }
+                        }
+                    }
+                    RepositoryUploadStatus.PROGRESS_UPLOAD -> {
+                        progressBar.apply{
+                            if (this.isIndeterminate){
+                                this.setProgressCompat(it.percentage, true)
+                            } else {
+                                this.progress = it.percentage
+                            }
+                        }
+                    }
+                    RepositoryUploadStatus.DONE -> {
+                        progressBar.apply {
+                            this.visibility = View.INVISIBLE
+                        }
+                    }
+                }
+            }
+        })
+
     }
 
     private fun setupRepoAuthToken(){

@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.LoginStatus
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
-import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
 import com.akdogan.simpledivelog.datalayer.repository.DataRepository
+import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_SUCCESS
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_UNVERIFIED
 import kotlinx.coroutines.launch
@@ -17,6 +17,7 @@ class MainActivityViewModel(
 ) : ViewModel() {
 
     val networkAvailable = repository.networkAvailable
+    val uploadStatus = repository.uploadApiStatus
 
     private var loginStatus = LoginStatus.UNVERIFIED
 
