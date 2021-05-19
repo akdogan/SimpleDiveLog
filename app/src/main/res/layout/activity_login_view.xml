@@ -3,6 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.akdogan.simpledivelog.application.ui.loginview.LoginViewModel" />
+    </data>
+
 <ScrollView
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -31,6 +37,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="@={viewModel.username}"
                 android:imeOptions="actionGo"
                 android:inputType="textShortMessage" />
 
@@ -53,6 +60,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="@={viewModel.password}"
                 android:imeOptions="actionGo"
                 android:inputType="textPassword" />
 
@@ -76,6 +84,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="@={viewModel.passwordRepeat}"
                 android:imeOptions="actionGo"
                 android:inputType="textPassword" />
 
@@ -91,7 +100,7 @@
             android:layout_marginTop="60dp"
             android:layout_marginStart="40dp"
             android:layout_marginEnd="40dp"
-
+            android:enabled="false"
             app:layout_constraintTop_toBottomOf="@+id/login_password_repeat" />
 
         <com.google.android.material.button.MaterialButton

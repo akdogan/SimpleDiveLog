@@ -36,6 +36,7 @@ class LoginViewActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(
             this, R.layout.activity_login_view
         )
+        binding.viewModel = viewModel
 
         binding.registerLoginSwitch.setOnClickListener { toggleLoginRegister() }
         binding.registerLoginButton.setOnClickListener { loginOrRegister() }
@@ -51,6 +52,12 @@ class LoginViewActivity : AppCompatActivity() {
             if (userIsLoggedIn == true) {
                 proceed()
                 viewModel.loginDone()
+            }
+        }
+
+        viewModel.enableActionButton.observe(this){ enable: Boolean? ->
+            enable?.let {
+                binding.registerLoginButton.isEnabled = it
             }
         }
     }
@@ -73,7 +80,6 @@ class LoginViewActivity : AppCompatActivity() {
     private fun toggleLoginRegister() {
         if (viewModel.useLogin()) {
             showWarningDialog()
-
         } else {
             setLoginView()
         }
@@ -87,7 +93,7 @@ class LoginViewActivity : AppCompatActivity() {
     }
 
     private fun setRegisterView() {
-        //passwordRepeatField.visibility = View.VISIBLE
+        binding.loginPasswordRepeat.visibility = View.VISIBLE
         binding.registerLoginButton.text = getString(R.string.login_view_register_state_action_button)
         binding.registerLoginSwitch.text = getString(R.string.login_view_login_state_switch_button)
     }

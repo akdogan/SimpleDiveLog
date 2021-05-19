@@ -1,5 +1,6 @@
 package com.akdogan.simpledivelog.application.ui.loginview
 
+import android.util.Log
 import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
@@ -32,6 +33,7 @@ class LoginViewModel(
         addSource(username) { value = checkEnableActionButton()}
         addSource(password) { value = checkEnableActionButton()}
         addSource(passwordRepeat) { value = checkEnableActionButton()}
+
     }
 
     private fun checkEnableActionButton(): Boolean {
@@ -44,11 +46,12 @@ class LoginViewModel(
     private fun verifyUserInput(
         usernameTemp: String?,
         passwordTemp: String?,
-        passwordRepTemp: String?
+        passwordRepTemp: String?,
     ): Boolean {
+        Log.i("LOGIN_TEST", "verifyUserInput called with: $usernameTemp, $passwordTemp, $passwordRepTemp")
         return matchPattern(usernameTemp, USERNAME_PATTERN) &&
                 matchPattern(passwordTemp, PASSWORD_PATTERN) &&
-                (toggleIsSetToLogin || (passwordRepTemp == passwordTemp))
+                (toggleIsSetToLogin || passwordRepTemp == passwordTemp)
     }
 
 
@@ -56,6 +59,7 @@ class LoginViewModel(
 
     fun toggleLogin() {
         toggleIsSetToLogin = !toggleIsSetToLogin
+        enableActionButton.postValue(checkEnableActionButton())
     }
 
     fun isUserRegistering() = !toggleIsSetToLogin
