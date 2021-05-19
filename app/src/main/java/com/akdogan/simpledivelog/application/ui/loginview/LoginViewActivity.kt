@@ -3,28 +3,24 @@ package com.akdogan.simpledivelog.application.ui.loginview
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import androidx.preference.PreferenceManager
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.mainactivity.MainActivity
+import com.akdogan.simpledivelog.databinding.ActivityLoginViewBinding
 import com.akdogan.simpledivelog.datalayer.ErrorCases
 import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesRepository
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_SUCCESS
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_VERIFIED_KEY
 import com.akdogan.simpledivelog.diveutil.Constants.NEW_REGISTERED_USER_KEY
-import com.google.android.material.textfield.TextInputLayout
 
 class LoginViewActivity : AppCompatActivity() {
-    private lateinit var userNameField: TextInputLayout
-    private lateinit var passwordField: TextInputLayout
-    private lateinit var passwordRepeatField: TextInputLayout
-    private lateinit var loginRegisterButton: Button
-    private lateinit var loginRegisterSwitch: Button
+    private lateinit var binding: ActivityLoginViewBinding
     private val viewModel: LoginViewModel by viewModels {
         LoginViewModelFactory(
             DefaultAuthRepository(),
@@ -37,16 +33,12 @@ class LoginViewActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login_view)
+        binding = DataBindingUtil.setContentView(
+            this, R.layout.activity_login_view
+        )
 
-        userNameField = findViewById(R.id.login_username)
-        passwordField = findViewById(R.id.login_password)
-        passwordRepeatField = findViewById(R.id.login_password_repeat)
-        loginRegisterButton = findViewById(R.id.register_login_button)
-        loginRegisterSwitch = findViewById(R.id.register_login_switch)
-
-        loginRegisterSwitch.setOnClickListener { toggleLoginRegister() }
-        loginRegisterButton.setOnClickListener { loginOrRegister() }
+        binding.registerLoginSwitch.setOnClickListener { toggleLoginRegister() }
+        binding.registerLoginButton.setOnClickListener { loginOrRegister() }
 
         viewModel.makeToast.observe(this) { code ->
             code?.let {
@@ -73,8 +65,8 @@ class LoginViewActivity : AppCompatActivity() {
     }
 
     private fun loginOrRegister() {
-        val username = userNameField.editText?.text.toString()
-        val pwd = passwordField.editText?.text.toString()
+        val username = binding.loginUsername.editText?.text.toString()
+        val pwd = binding.loginPassword.editText?.text.toString()
         viewModel.startRequest(username, pwd)
     }
 
@@ -89,15 +81,15 @@ class LoginViewActivity : AppCompatActivity() {
     }
 
     private fun setLoginView() {
-        passwordRepeatField.visibility = View.GONE
-        loginRegisterButton.text = "Login"
-        loginRegisterSwitch.text = "Register instead"
+        binding.loginPasswordRepeat.visibility = View.GONE
+        binding.registerLoginButton.text = "Login"
+        binding.registerLoginSwitch.text = "Register instead"
     }
 
     private fun setRegisterView() {
         //passwordRepeatField.visibility = View.VISIBLE
-        loginRegisterButton.text = "Register"
-        loginRegisterSwitch.text = "Login instead"
+        binding.registerLoginButton.text = "Register"
+        binding.registerLoginSwitch.text = "Login instead"
     }
 
     private fun showWarningDialog() {
