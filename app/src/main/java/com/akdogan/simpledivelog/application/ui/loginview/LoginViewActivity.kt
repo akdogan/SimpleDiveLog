@@ -82,23 +82,20 @@ class LoginViewActivity : AppCompatActivity() {
 
     private fun setLoginView() {
         binding.loginPasswordRepeat.visibility = View.GONE
-        binding.registerLoginButton.text = "Login"
-        binding.registerLoginSwitch.text = "Register instead"
+        binding.registerLoginButton.text = getString(R.string.login_view_login_state_action_button)
+        binding.registerLoginSwitch.text = getString(R.string.login_view_login_state_switch_button)
     }
 
     private fun setRegisterView() {
         //passwordRepeatField.visibility = View.VISIBLE
-        binding.registerLoginButton.text = "Register"
-        binding.registerLoginSwitch.text = "Login instead"
+        binding.registerLoginButton.text = getString(R.string.login_view_register_state_action_button)
+        binding.registerLoginSwitch.text = getString(R.string.login_view_login_state_switch_button)
     }
 
     private fun showWarningDialog() {
         AlertDialog.Builder(this)
-            .setTitle("Warning")
-            .setMessage(
-                "This is an example app.\nTraffic is plaintext and not secured.\n\nPlease do " +
-                        "NOT use any real passwords"
-            )
+            .setTitle(getString(R.string.login_view_dialog_title))
+            .setMessage(getString(R.string.login_view_dialog_message))
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 setRegisterView()
             }

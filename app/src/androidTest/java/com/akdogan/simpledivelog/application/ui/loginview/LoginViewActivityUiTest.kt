@@ -1,5 +1,6 @@
 package com.akdogan.simpledivelog.application.ui.loginview
 
+import androidx.annotation.StringRes
 import androidx.test.core.app.launchActivity
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
@@ -16,12 +17,11 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class LoginViewActivityUiTest {
 
-    private val loginStateSwitchButton = "Register instead"
-    private val loginStateActionButton = "Login"
-    private val registerStateSwitchButton = "Login instead"
-    private val registerStateActionButton = "Register"
-
-    private val alertDialogTitle = "Warning"
+    @StringRes private val loginStateSwitchButton = R.string.login_view_login_state_switch_button
+    @StringRes private val loginStateActionButton = R.string.login_view_login_state_action_button
+    @StringRes private val registerStateSwitchButton = R.string.login_view_register_state_switch_button
+    @StringRes private val registerStateActionButton = R.string.login_view_register_state_action_button
+    @StringRes private val alertDialogTitle = R.string.login_view_dialog_title
 
     //@get:Rule var activityScenarioRul = activityScenarioRule<MainActivity>
 
