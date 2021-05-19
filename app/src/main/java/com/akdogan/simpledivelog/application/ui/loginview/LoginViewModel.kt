@@ -4,6 +4,9 @@ import androidx.lifecycle.*
 import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
+import com.akdogan.simpledivelog.diveutil.Constants.PASSWORD_PATTERN
+import com.akdogan.simpledivelog.diveutil.Constants.USERNAME_PATTERN
+import com.akdogan.simpledivelog.diveutil.matchPattern
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
@@ -20,6 +23,34 @@ class LoginViewModel(
     private val _loginStatus = MutableLiveData(false)
     val loginStatus : LiveData<Boolean>
         get() = _loginStatus
+
+    val username = MutableLiveData<String>()
+    val password = MutableLiveData<String>()
+    val passwordRepeat = MutableLiveData<String>()
+
+    val enableActionButton: MediatorLiveData<Boolean> = MediatorLiveData<Boolean>().apply{
+        addSource(username) { value = checkEnableActionButton()}
+        addSource(password) { value = checkEnableActionButton()}
+        addSource(passwordRepeat) { value = checkEnableActionButton()}
+    }
+
+    private fun checkEnableActionButton(): Boolean {
+        val usernameTemp = username.value
+        val passwordTemp = password.value
+        val passwordRepTemp = passwordRepeat.value
+        return verifyUserInput(usernameTemp, passwordTemp, passwordRepTemp)
+    }
+
+    private fun verifyUserInput(
+        usernameTemp: String?,
+        passwordTemp: String?,
+        passwordRepTemp: String?
+    ): Boolean {
+        return matchPattern(usernameTemp, USERNAME_PATTERN) &&
+                matchPattern(passwordTemp, PASSWORD_PATTERN) &&
+                (toggleIsSetToLogin || (passwordRepTemp == passwordTemp))
+    }
+
 
     fun useLogin() = toggleIsSetToLogin
 

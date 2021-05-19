@@ -9,30 +9,7 @@ import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import kotlin.math.round
 
 
-object UnitConversion {
 
-    @InverseMethod("stringToDate")
-    @JvmStatic fun dateToString(
-        value: Int?
-    ): String? {
-
-            return value?.let{
-                round(value * 3.2808).toString()
-            } ?: null
-
-    }
-
-    @JvmStatic fun stringToDate(
-        value: String?
-    ): Int? {
-        var result = value?.toIntOrNull()
-        if (result != null){
-            result = round(result / 3.2808).toInt()
-        }
-        return result
-    }
-
-}
 
 @BindingAdapter("diveNumberFormatted")
 fun TextView.diveNumberFormatted(item: DiveLogEntry?) {
