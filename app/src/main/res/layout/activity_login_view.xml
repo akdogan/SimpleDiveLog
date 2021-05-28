@@ -25,6 +25,8 @@
             android:layout_height="wrap_content"
             style="@style/Widget.SimpleDiveLog.TextInputLayout"
             android:hint="@string/login_view_username_hint"
+            app:helperText="Min. 6 characters"
+
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="100dp"
@@ -43,12 +45,14 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/login_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="@style/Widget.SimpleDiveLog.TextInputLayout"
             android:hint="@string/login_view_password_hint"
+            app:helperText="Allowed: a-z, 0-9, -+$!_*"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="30dp"

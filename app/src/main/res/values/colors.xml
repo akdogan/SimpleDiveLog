@@ -12,4 +12,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="light_grey">#F4F4F4</color>
     <color name="medium_grey">#A1A1A1</color>
+    <color name="error_yellow">#FFC107</color>
+    <color name="error_red">#C60000</color>
 </resources>
