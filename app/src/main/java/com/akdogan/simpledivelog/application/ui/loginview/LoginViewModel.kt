@@ -53,13 +53,25 @@ class LoginViewModel(
         )
     }
 
-    val passwordRepeatState = Transformations.map(passwordRepeat) {
-        checkInputMediator(
-            input = it,
+    // Repeat state should be checked also when password is modified
+    val passwordRepeatState = MediatorLiveData<TextInputErrorCases>().apply {
+        // Might cause bugs when going to register and back to login
+        fun addSourceWithSwitch(src: MutableLiveData<String>){
+            this.addSource(src){
+                if (!toggleIsSetToLogin) value = checkInputPasswordRepeat(passwordRepeat.value, password.value)
+            }
+        }
+        addSourceWithSwitch(password)
+        addSourceWithSwitch(passwordRepeat)
+    }
+
+    fun checkInputPasswordRepeat(passwordRepeat: String?, password: String?): TextInputErrorCases {
+        return checkInputMediator(
+            input = passwordRepeat,
             fullPattern = PASSWORD_PATTERN,
             allowedCharsPattern = PASSWORD_VALID_CHARS_PATTERN,
             minLength = PASSWORD_MIN_LENGTH,
-            twin = password.value
+            twin = password
         )
     }
 
@@ -70,9 +82,9 @@ class LoginViewModel(
     }
 
     private fun checkEnableActionButton(): Boolean {
-        return usernameState.value == NoError &&
-                passwordState.value == NoError &&
-                (toggleIsSetToLogin || passwordRepeatState.value == NoError)
+        return usernameState.value == Valid &&
+                passwordState.value == Valid &&
+                (toggleIsSetToLogin || passwordRepeatState.value == Valid)
     }
 
     private fun checkInputMediator(
@@ -83,12 +95,12 @@ class LoginViewModel(
         twin: String? = input
     ): TextInputErrorCases {
         return when {
-            input.isNullOrEmpty() -> NoError
+            input.isNullOrBlank() -> Empty
             input != twin -> DoesNotMatch
-            matchPattern(input, fullPattern) -> NoError
+            matchPattern(input, fullPattern) -> Valid
             !matchPattern(input, allowedCharsPattern) -> InvalidCharacter
             input.length < minLength -> TooShort
-            else -> NoError
+            else -> Empty
         }
     }
 
@@ -134,6 +146,7 @@ class LoginViewModel(
         _loginStatus.value = false
     }
 }
+
 
 
 

@@ -14,4 +14,5 @@
     <color name="medium_grey">#A1A1A1</color>
     <color name="error_yellow">#FFC107</color>
     <color name="error_red">#C60000</color>
+    <color name="valid_green">#20971C</color>
 </resources>

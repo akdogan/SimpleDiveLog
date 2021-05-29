@@ -6,10 +6,11 @@ import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
 
 enum class TextInputErrorCases{
-    NoError,
+    Empty,
     TooShort,
     InvalidCharacter,
-    DoesNotMatch
+    DoesNotMatch,
+    Valid
 }
 
 class LoginViewModelFactory(
