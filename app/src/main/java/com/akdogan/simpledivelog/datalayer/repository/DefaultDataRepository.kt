@@ -93,9 +93,7 @@ class DefaultDataRepository private constructor(
             return if (response.isSuccessful) {
                 Log.i(TAG, "SafeCall Response Success: ${response.code()}, ${response.body()}")
 
-                val body: T =
-                    response.body()?.data
-                        ?: return Result.EmptySuccess//Failure(CALL_SUCCESS_EMPTY_BODY)
+                val body: T = response.body()?.data ?: return Result.EmptySuccess
                 Result.Success(body)
             } else {
                 Log.i(TAG, "SafeCall Response Failure: ${response.code()}, ${response.body()}")

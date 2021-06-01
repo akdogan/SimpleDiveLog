@@ -40,7 +40,6 @@ class LaunchActivity : AppCompatActivity() {
             }
         }
         viewModel.validateLogin()
-
     }
 
     private fun startLogin() {

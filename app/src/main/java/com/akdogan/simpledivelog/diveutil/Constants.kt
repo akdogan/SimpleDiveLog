@@ -19,7 +19,17 @@ object Constants{
     const val NEW_REGISTERED_USER_KEY = "new_registered_user_key"
     const val CREATE_SAMPLE_DATA = "createSampleData"
 
-
     // Auth Template
     const val AUTH_TEMPLATE = "Basic "
+
+    // Username and Password
+    const val USERNAME_MIN_LENGTH = 6
+    const val USERNAME_ALLOWED_CHARS = "-+_"
+    const val USERNAME_PATTERN = "^[\\w|\\${USERNAME_ALLOWED_CHARS}]{${USERNAME_MIN_LENGTH},}$"
+    const val USERNAME_VALID_CHARS_PATTERN = "^[\\w|\\${USERNAME_ALLOWED_CHARS}]+$"
+    const val PASSWORD_MIN_LENGTH = 8
+    const val PASSWORD_ALLOWED_CHARS = "-+$!_*"
+    const val PASSWORD_PATTERN = "^[\\w|\\${PASSWORD_ALLOWED_CHARS}]{${PASSWORD_MIN_LENGTH},}$"
+    const val PASSWORD_VALID_CHARS_PATTERN = "^[\\w|\\${PASSWORD_ALLOWED_CHARS}]+$"
+
 }

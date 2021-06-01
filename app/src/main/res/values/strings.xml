@@ -44,6 +44,26 @@
     <!-- Keys used programmatically-->
     <string name="navigated_back_key" translatable="false">navigated_back</string>
 
+    <!-- Login View Strings -->
+    <string name="login_view_login_state_action_button">Login</string>
+    <string name="login_view_login_state_title">Login</string>
+    <string name="login_view_login_state_switch_button">Register instead</string>
+    <string name="login_view_register_state_action_button">Register</string>
+    <string name="login_view_register_state_title">Register</string>
+    <string name="login_view_register_state_switch_button">Login instead</string>
+    <string name="login_view_username_hint">Username</string>
+    <string name="login_view_password_hint">Password</string>
+    <string name="login_view_password_repeat_hint">Repeat Password</string>
+    <string name="login_view_dialog_title">Warning</string>
+    <string name="login_view_dialog_message">This is an example app.\nTraffic is plaintext and not secured.\n\nPlease do NOT use any real passwords</string>
+    <string name="login_view_helper_template">%s: %s</string>
+    <string name="login_view_helper_min_chars">Min. %d characters</string>
+    <string name="login_view_helper_allowed_chars">a–z, 0–9, %s</string>
+    <string name="login_view_error_invalid_char">Allowed</string>
+    <string name="login_view_error_too_short">Too short</string>
+    <string name="login_view_error_no_match">Does not match</string>
+
+
     <!-- Detail View Strings -->
     <string name="detail_view_dive_number_label">Dive Number:</string>
     <string name="detail_view_location_label">Location:</string>
@@ -52,7 +72,6 @@
     <string name="detail_view_date_label">Date:</string>
     <string name="menu_detail_view_edit_button_label">Edit</string>
     <string name="detail_view_dive_number_content">#%d</string>
-
     <string name="detail_view_duration_content">%d minutes</string>
     <string name="detail_view_maxdepth_content">%d feet</string>
 
