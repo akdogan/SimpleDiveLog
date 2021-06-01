@@ -54,6 +54,13 @@
     <string name="login_view_password_repeat_hint">Repeat Password</string>
     <string name="login_view_dialog_title">Warning</string>
     <string name="login_view_dialog_message">This is an example app.\nTraffic is plaintext and not secured.\n\nPlease do NOT use any real passwords</string>
+    <string name="login_view_helper_template">%s: %s</string>
+    <string name="login_view_helper_min_chars">Min. %d characters</string>
+    <string name="login_view_helper_allowed_chars">a–z, 0–9, %s</string>
+    <string name="login_view_error_invalid_char">Allowed</string>
+    <string name="login_view_error_too_short">Too short</string>
+    <string name="login_view_error_no_match">Does not match</string>
+
 
     <!-- Detail View Strings -->
     <string name="detail_view_dive_number_label">Dive Number:</string>

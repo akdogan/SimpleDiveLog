@@ -25,6 +25,10 @@ import com.akdogan.simpledivelog.datalayer.repository.DefaultPreferencesReposito
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_SUCCESS
 import com.akdogan.simpledivelog.diveutil.Constants.LOGIN_VERIFIED_KEY
 import com.akdogan.simpledivelog.diveutil.Constants.NEW_REGISTERED_USER_KEY
+import com.akdogan.simpledivelog.diveutil.Constants.PASSWORD_ALLOWED_CHARS
+import com.akdogan.simpledivelog.diveutil.Constants.PASSWORD_MIN_LENGTH
+import com.akdogan.simpledivelog.diveutil.Constants.USERNAME_ALLOWED_CHARS
+import com.akdogan.simpledivelog.diveutil.Constants.USERNAME_MIN_LENGTH
 import com.google.android.material.textfield.TextInputLayout
 
 
@@ -47,7 +51,9 @@ class LoginViewActivity : AppCompatActivity() {
     // Workaround: When Textinputlayout errorcolor changes, it needs to be refreshed
     // Otherwise the hint color will not change immediately
     private class ErrorStateHolder(
-        val defaultHelperText: String,
+        val emptyHelperText: String,
+        val tooShortHelperText: String,
+        val invalidHelperText: String,
         var state: TextInputState = Empty
     )
 
@@ -59,9 +65,33 @@ class LoginViewActivity : AppCompatActivity() {
         )
     }
 
-    private var usernameErrorState = ErrorStateHolder("Min. 6 characters")
-    private var passwordErrorState = ErrorStateHolder("Test")
-    private var passwordRepErrorState = ErrorStateHolder("Test")
+    private lateinit var usernameErrorState: ErrorStateHolder
+    private lateinit var passwordErrorState: ErrorStateHolder
+    private lateinit var passwordRepErrorState: ErrorStateHolder
+
+    private fun getEmptyHelperText(num: Int, allowedChars: String): String {
+        return getString(
+            R.string.login_view_helper_template,
+            getString(R.string.login_view_helper_min_chars, num),
+            getString(R.string.login_view_helper_allowed_chars, allowedChars)
+        )
+    }
+
+    private fun getTooShortHelperText(num: Int): String {
+        return getString(
+            R.string.login_view_helper_template,
+            getString(R.string.login_view_error_too_short),
+            getString(R.string.login_view_helper_min_chars, num)
+        )
+    }
+
+    private fun getInvalidHelperText(allowedChars: String): String {
+        return getString(
+            R.string.login_view_helper_template,
+            getString(R.string.login_view_error_invalid_char),
+            getString(R.string.login_view_helper_allowed_chars, allowedChars)
+        )
+    }
 
     private var toast: Toast? = null
 
@@ -74,9 +104,10 @@ class LoginViewActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
-        // TODO Use data binding for consistency
         binding.registerLoginSwitch.setOnClickListener { toggleLoginRegister() }
-        binding.registerLoginButton.setOnClickListener { loginOrRegister() }
+        binding.registerLoginButton.setOnClickListener { viewModel.startRequest() }
+
+        setupViews()
 
         viewModel.makeToast.observe(this) { code ->
             code?.let {
@@ -114,6 +145,41 @@ class LoginViewActivity : AppCompatActivity() {
         }
     }
 
+    //Min. 6 characters: a–z, 0–9, -+_
+
+    private fun setupViews(){
+        val usernameText = getEmptyHelperText(USERNAME_MIN_LENGTH, USERNAME_ALLOWED_CHARS)
+        val passwordText = getEmptyHelperText(PASSWORD_MIN_LENGTH, PASSWORD_ALLOWED_CHARS)
+
+        val usernameTooShort = getTooShortHelperText(USERNAME_MIN_LENGTH)
+        val passwordTooShort = getTooShortHelperText(PASSWORD_MIN_LENGTH)
+
+        val usernameInvalid = getInvalidHelperText(USERNAME_ALLOWED_CHARS)
+        val passwordInvalid = getInvalidHelperText(PASSWORD_ALLOWED_CHARS)
+
+        Log.d("CUSTOM_TEST", "usernameDefaultHelper: |$usernameText|")
+        Log.d("CUSTOM_TEST", "passwordDefaultHelper: $passwordText")
+        usernameErrorState = ErrorStateHolder(
+            emptyHelperText = usernameText,
+            tooShortHelperText = usernameTooShort,
+            invalidHelperText = usernameInvalid
+        )
+        passwordErrorState = ErrorStateHolder(
+            emptyHelperText = passwordText,
+            tooShortHelperText = passwordTooShort,
+            invalidHelperText = passwordInvalid
+        )
+        passwordRepErrorState = ErrorStateHolder(
+            emptyHelperText = passwordText,
+            tooShortHelperText = passwordTooShort,
+            invalidHelperText = passwordInvalid
+        )
+
+        binding.loginUsername.setEmptyState(usernameText)
+        binding.loginPassword.setEmptyState(passwordText)
+        binding.loginPasswordRepeat.setEmptyState(passwordText)
+    }
+
 
     private fun TextInputLayout.handleError(
         errorCase: TextInputState?,
@@ -123,17 +189,17 @@ class LoginViewActivity : AppCompatActivity() {
             errorState.state = errorCase ?: Empty
             errorCase?.let {
                 when (errorCase) {
-                    Empty -> this.setEmptyState(errorState.defaultHelperText)
+                    Empty -> this.setEmptyState(errorState.emptyHelperText)
                     InvalidCharacter -> this.setErrorState(
-                        "InvalidCharacter",
+                        errorState.invalidHelperText,
                         ERROR_COLOR,
                     )
                     TooShort -> this.setErrorState(
-                        "Too short",
+                        errorState.tooShortHelperText,
                         WARNING_COLOR,
                     )
                     DoesNotMatch -> this.setErrorState(
-                        "Does Not Match",
+                        getString(R.string.login_view_error_no_match),
                         ERROR_COLOR,
                     )
                     Valid -> this.setValidState()
@@ -188,13 +254,6 @@ class LoginViewActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun loginOrRegister() {
-        // TODO Refactor
-        val username = binding.loginUsername.editText?.text.toString()
-        val pwd = binding.loginPassword.editText?.text.toString()
-        viewModel.startRequest(username, pwd)
-    }
-
     private fun toggleLoginRegister() {
         if (viewModel.useLogin()) {
             showWarningDialog()
@@ -205,12 +264,14 @@ class LoginViewActivity : AppCompatActivity() {
     }
 
     private fun setLoginView() {
+        title = "Login"
         binding.loginPasswordRepeat.visibility = View.GONE
         binding.registerLoginButton.text = getString(R.string.login_view_login_state_action_button)
         binding.registerLoginSwitch.text = getString(R.string.login_view_login_state_switch_button)
     }
 
     private fun setRegisterView() {
+        title = "Register"
         binding.loginPasswordRepeat.visibility = View.VISIBLE
         binding.registerLoginButton.text =
             getString(R.string.login_view_register_state_action_button)

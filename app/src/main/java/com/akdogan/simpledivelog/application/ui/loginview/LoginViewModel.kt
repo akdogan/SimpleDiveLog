@@ -2,6 +2,7 @@ package com.akdogan.simpledivelog.application.ui.loginview
 
 import androidx.lifecycle.*
 import com.akdogan.simpledivelog.application.ui.loginview.TextInputState.*
+import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_ERROR
 import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
@@ -112,22 +113,26 @@ class LoginViewModel(
 
     fun isUserRegistering() = !toggleIsSetToLogin
 
-    fun startRequest(
-        username: String,
-        pwd: String
-    ) {
-        viewModelScope.launch {
-            val loginAttemptResponse = when (toggleIsSetToLogin) {
-                true -> authRepository.login(username, pwd)
-                false -> authRepository.register(username, pwd)
-            }
-            when (loginAttemptResponse) {
-                is Result.Success -> {
-                    saveAuthCredentials(loginAttemptResponse.body)
-                    _loginStatus.postValue(true)
+    fun startRequest(){
+        try {
+            val localUsername = requireNotNull(username.value)
+            val localPwd = requireNotNull(password.value)
+            viewModelScope.launch {
+                val loginAttemptResponse = when (toggleIsSetToLogin) {
+                    true -> authRepository.login(localUsername, localPwd)
+                    false -> authRepository.register(localUsername, localPwd)
                 }
-                is Result.Failure -> _makeToast.postValue(loginAttemptResponse.errorCode)
+                when (loginAttemptResponse) {
+                    is Result.Success -> {
+                        saveAuthCredentials(loginAttemptResponse.body)
+                        _loginStatus.postValue(true)
+                    }
+                    is Result.Failure -> _makeToast.postValue(loginAttemptResponse.errorCode)
+                }
             }
+        }
+        catch (e: IllegalArgumentException){
+            _makeToast.postValue(GENERAL_ERROR)
         }
     }
 

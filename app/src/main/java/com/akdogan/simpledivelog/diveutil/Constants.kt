@@ -24,10 +24,12 @@ object Constants{
 
     // Username and Password
     const val USERNAME_MIN_LENGTH = 6
-    const val USERNAME_PATTERN = "^[\\w][\\w|\\-+_]{${USERNAME_MIN_LENGTH-1},}$"
-    const val USERNAME_VALID_CHARS_PATTERN = "^[\\w|\\-+_]+$"
+    const val USERNAME_ALLOWED_CHARS = "-+_"
+    const val USERNAME_PATTERN = "^[\\w|\\${USERNAME_ALLOWED_CHARS}]{${USERNAME_MIN_LENGTH},}$"
+    const val USERNAME_VALID_CHARS_PATTERN = "^[\\w|\\${USERNAME_ALLOWED_CHARS}]+$"
     const val PASSWORD_MIN_LENGTH = 8
-    const val PASSWORD_PATTERN = "^[\\w|\\-+$!_*]{${PASSWORD_MIN_LENGTH},}$"
-    const val PASSWORD_VALID_CHARS_PATTERN = "^[\\w|\\-+$!_*]+$"
+    const val PASSWORD_ALLOWED_CHARS = "-+$!_*"
+    const val PASSWORD_PATTERN = "^[\\w|\\${PASSWORD_ALLOWED_CHARS}]{${PASSWORD_MIN_LENGTH},}$"
+    const val PASSWORD_VALID_CHARS_PATTERN = "^[\\w|\\${PASSWORD_ALLOWED_CHARS}]+$"
 
 }
