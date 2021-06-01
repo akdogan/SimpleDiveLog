@@ -46,8 +46,10 @@
 
     <!-- Login View Strings -->
     <string name="login_view_login_state_action_button">Login</string>
+    <string name="login_view_login_state_title">Login</string>
     <string name="login_view_login_state_switch_button">Register instead</string>
     <string name="login_view_register_state_action_button">Register</string>
+    <string name="login_view_register_state_title">Register</string>
     <string name="login_view_register_state_switch_button">Login instead</string>
     <string name="login_view_username_hint">Username</string>
     <string name="login_view_password_hint">Password</string>

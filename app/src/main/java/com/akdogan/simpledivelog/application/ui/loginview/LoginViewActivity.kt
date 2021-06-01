@@ -3,7 +3,6 @@ package com.akdogan.simpledivelog.application.ui.loginview
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.Toast
@@ -95,7 +94,6 @@ class LoginViewActivity : AppCompatActivity() {
 
     private var toast: Toast? = null
 
-    // TODO Change title to register when register
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(
@@ -130,22 +128,18 @@ class LoginViewActivity : AppCompatActivity() {
         }
 
         viewModel.usernameState.observe(this) {
-            Log.i("Update_tracing", "username state called with $it")
             binding.loginUsername.handleError(it, usernameErrorState)
         }
 
         viewModel.passwordState.observe(this) {
-            Log.i("Update_tracing", "password state called with $it")
             binding.loginPassword.handleError(it, passwordErrorState)
         }
 
         viewModel.passwordRepeatState.observe(this) {
-            Log.i("Update_tracing", "password Rep state called with $it")
             binding.loginPasswordRepeat.handleError(it, passwordRepErrorState)
         }
     }
 
-    //Min. 6 characters: a–z, 0–9, -+_
 
     private fun setupViews(){
         val usernameText = getEmptyHelperText(USERNAME_MIN_LENGTH, USERNAME_ALLOWED_CHARS)
@@ -157,8 +151,6 @@ class LoginViewActivity : AppCompatActivity() {
         val usernameInvalid = getInvalidHelperText(USERNAME_ALLOWED_CHARS)
         val passwordInvalid = getInvalidHelperText(PASSWORD_ALLOWED_CHARS)
 
-        Log.d("CUSTOM_TEST", "usernameDefaultHelper: |$usernameText|")
-        Log.d("CUSTOM_TEST", "passwordDefaultHelper: $passwordText")
         usernameErrorState = ErrorStateHolder(
             emptyHelperText = usernameText,
             tooShortHelperText = usernameTooShort,
@@ -264,14 +256,14 @@ class LoginViewActivity : AppCompatActivity() {
     }
 
     private fun setLoginView() {
-        title = "Login"
+        title = getString(R.string.login_view_login_state_title)
         binding.loginPasswordRepeat.visibility = View.GONE
         binding.registerLoginButton.text = getString(R.string.login_view_login_state_action_button)
         binding.registerLoginSwitch.text = getString(R.string.login_view_login_state_switch_button)
     }
 
     private fun setRegisterView() {
-        title = "Register"
+        title = getString(R.string.login_view_register_state_title)
         binding.loginPasswordRepeat.visibility = View.VISIBLE
         binding.registerLoginButton.text =
             getString(R.string.login_view_register_state_action_button)
