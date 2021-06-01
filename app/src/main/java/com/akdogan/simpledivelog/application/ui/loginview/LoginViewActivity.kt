@@ -17,7 +17,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.preference.PreferenceManager
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.mainactivity.MainActivity
-import com.akdogan.simpledivelog.application.ui.loginview.TextInputErrorCases.*
+import com.akdogan.simpledivelog.application.ui.loginview.TextInputState.*
 import com.akdogan.simpledivelog.databinding.ActivityLoginViewBinding
 import com.akdogan.simpledivelog.datalayer.ErrorCases
 import com.akdogan.simpledivelog.datalayer.repository.DefaultAuthRepository
@@ -31,15 +31,12 @@ import com.google.android.material.textfield.TextInputLayout
 class LoginViewActivity : AppCompatActivity() {
 
     companion object {
+        // TODO: Add to theme and retrieve via function
         const val ERROR_COLOR = R.color.design_default_color_error
         const val WARNING_COLOR = R.color.error_yellow
         const val VALID_COLOR = R.color.valid_green
-        const val DEFAULT_COLOR = R.attr.colorPrimary
-
     }
 
-
-    //var defaultColor: Int
     @ColorInt
     fun getDefaultColor(): Int {
         val typedValue = TypedValue()
@@ -47,13 +44,11 @@ class LoginViewActivity : AppCompatActivity() {
         return typedValue.data
     }
 
-
     // Workaround: When Textinputlayout errorcolor changes, it needs to be refreshed
     // Otherwise the hint color will not change immediately
     private class ErrorStateHolder(
         val defaultHelperText: String,
-        var state: TextInputErrorCases = Empty
-
+        var state: TextInputState = Empty
     )
 
     private lateinit var binding: ActivityLoginViewBinding
@@ -70,7 +65,7 @@ class LoginViewActivity : AppCompatActivity() {
 
     private var toast: Toast? = null
 
-
+    // TODO Change title to register when register
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(
@@ -79,6 +74,7 @@ class LoginViewActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
+        // TODO Use data binding for consistency
         binding.registerLoginSwitch.setOnClickListener { toggleLoginRegister() }
         binding.registerLoginButton.setOnClickListener { loginOrRegister() }
 
@@ -120,7 +116,7 @@ class LoginViewActivity : AppCompatActivity() {
 
 
     private fun TextInputLayout.handleError(
-        errorCase: TextInputErrorCases?,
+        errorCase: TextInputState?,
         errorState: ErrorStateHolder
     ) {
         if (errorCase != errorState.state) {
@@ -169,7 +165,6 @@ class LoginViewActivity : AppCompatActivity() {
         this.error = null
     }
 
-
     private fun TextInputLayout.setErrorState(
         msg: String,
         @ColorRes color: Int,
@@ -182,7 +177,6 @@ class LoginViewActivity : AppCompatActivity() {
         this.helperText = msg // change helpertext to msg to avoid animation glitch
         this.error = null // Workaround: Refresh if the error color changes
         this.error = msg
-
     }
 
     private fun proceed() {

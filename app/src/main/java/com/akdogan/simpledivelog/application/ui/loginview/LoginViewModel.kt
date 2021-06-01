@@ -1,7 +1,7 @@
 package com.akdogan.simpledivelog.application.ui.loginview
 
 import androidx.lifecycle.*
-import com.akdogan.simpledivelog.application.ui.loginview.TextInputErrorCases.*
+import com.akdogan.simpledivelog.application.ui.loginview.TextInputState.*
 import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
@@ -19,7 +19,6 @@ class LoginViewModel(
     private val prefsRepository: PreferencesRepository
 ) : ViewModel() {
 
-
     private var toggleIsSetToLogin = true
 
     private val _makeToast = MutableLiveData<Int>()
@@ -35,7 +34,7 @@ class LoginViewModel(
     val passwordRepeat = MutableLiveData<String>()
 
 
-    val usernameState = Transformations.map(username) {
+    internal val usernameState = Transformations.map(username) {
         checkInputMediator(
             input = it,
             fullPattern = USERNAME_PATTERN,
@@ -44,7 +43,7 @@ class LoginViewModel(
         )
     }
 
-    val passwordState = Transformations.map(password) {
+    internal val passwordState = Transformations.map(password) {
         checkInputMediator(
             input = it,
             fullPattern = PASSWORD_PATTERN,
@@ -54,7 +53,7 @@ class LoginViewModel(
     }
 
     // Repeat state should be checked also when password is modified
-    val passwordRepeatState = MediatorLiveData<TextInputErrorCases>().apply {
+    internal val passwordRepeatState = MediatorLiveData<TextInputState>().apply {
         // Might cause bugs when going to register and back to login
         fun addSourceWithSwitch(src: MutableLiveData<String>){
             this.addSource(src){
@@ -65,7 +64,7 @@ class LoginViewModel(
         addSourceWithSwitch(passwordRepeat)
     }
 
-    fun checkInputPasswordRepeat(passwordRepeat: String?, password: String?): TextInputErrorCases {
+    private fun checkInputPasswordRepeat(passwordRepeat: String?, password: String?): TextInputState {
         return checkInputMediator(
             input = passwordRepeat,
             fullPattern = PASSWORD_PATTERN,
@@ -93,7 +92,7 @@ class LoginViewModel(
         allowedCharsPattern: String,
         minLength: Int,
         twin: String? = input
-    ): TextInputErrorCases {
+    ): TextInputState {
         return when {
             input.isNullOrBlank() -> Empty
             input != twin -> DoesNotMatch
@@ -117,7 +116,6 @@ class LoginViewModel(
         username: String,
         pwd: String
     ) {
-
         viewModelScope.launch {
             val loginAttemptResponse = when (toggleIsSetToLogin) {
                 true -> authRepository.login(username, pwd)
@@ -131,7 +129,6 @@ class LoginViewModel(
                 is Result.Failure -> _makeToast.postValue(loginAttemptResponse.errorCode)
             }
         }
-
     }
 
     private fun saveAuthCredentials(token: String) {

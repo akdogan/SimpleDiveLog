@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.akdogan.simpledivelog.datalayer.repository.AuthRepository
 import com.akdogan.simpledivelog.datalayer.repository.PreferencesRepository
 
-enum class TextInputErrorCases{
+internal enum class TextInputState{
     Empty,
     TooShort,
     InvalidCharacter,
@@ -13,7 +13,7 @@ enum class TextInputErrorCases{
     Valid
 }
 
-class LoginViewModelFactory(
+internal class LoginViewModelFactory(
     private val repo: AuthRepository,
     private val prefsRepo: PreferencesRepository
 ) : ViewModelProvider.Factory {

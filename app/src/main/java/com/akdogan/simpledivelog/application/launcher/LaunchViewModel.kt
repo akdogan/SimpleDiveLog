@@ -33,7 +33,6 @@ class LaunchViewModel(
         }
     }
 
-
     private fun purgeCredentials() {
         prefsRepository.purgeCredentials()
         // TODO Also delete cache (it might be from another user)
