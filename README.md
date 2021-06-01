@@ -1,9 +1,9 @@
 # SimpleDiveLog
 Showcase Project: An Application to save your Scuba Divelog entries in the cloud.
 Features:
-- Create an Account (WIP)
+- Create an Account
 - Create an entry, including date, location, divetime, depth and optionally Air in / out, weight
-- Add a piture to an entry from camera or gallery
+- Add a picture to an entry from camera or gallery
 - View and edit exisiting entries
 - Switch units between metric and imperial (WIP)
 
