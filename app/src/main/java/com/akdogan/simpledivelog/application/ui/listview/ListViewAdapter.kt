@@ -6,8 +6,8 @@ import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.databinding.ListEntryViewBinding
-import com.akdogan.simpledivelog.datalayer.network.getThumbnailFromImageUrl
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
+import com.akdogan.simpledivelog.datalayer.network.getThumbnailFromImageUrl
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 
@@ -30,8 +30,11 @@ class ListViewAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ListItemViewHolder {
-        val binding =
-            ListEntryViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ListEntryViewBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
         return ListItemViewHolder(binding)
     }
 

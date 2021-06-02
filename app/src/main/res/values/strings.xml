@@ -65,15 +65,22 @@
 
 
     <!-- Detail View Strings -->
-    <string name="detail_view_dive_number_label">Dive Number:</string>
-    <string name="detail_view_location_label">Location:</string>
-    <string name="detail_view_duration_label">Duration:</string>
-    <string name="detail_view_maxdepth_label">Maximum Depth:</string>
-    <string name="detail_view_date_label">Date:</string>
+    <string name="detail_view_dive_number_label">Dive Number</string>
+    <string name="detail_view_location_label">Location</string>
+    <string name="detail_view_duration_label">Duration</string>
+    <string name="detail_view_maxdepth_label">Maximum Depth</string>
+    <string name="detail_view_date_label">Date</string>
+    <string name="detail_view_weight_label">Weight</string>
+    <string name="detail_view_air_in_label">Air in</string>
+    <string name="detail_view_air_out_label">Air out</string>
+    <string name="detail_view_notes_label">Notes</string>
     <string name="menu_detail_view_edit_button_label">Edit</string>
-    <string name="detail_view_dive_number_content">#%d</string>
-    <string name="detail_view_duration_content">%d minutes</string>
-    <string name="detail_view_maxdepth_content">%d feet</string>
+    <string name="detail_view_dive_number_content">#%s</string>
+    <string name="detail_view_duration_content">%s minutes</string>
+    <string name="detail_view_maxdepth_content">%s meters</string>
+    <string name="detail_view_weight_content">%s kg</string>
+    <string name="detail_view_air_content">%s bar</string>
+    <string name="detail_view_placeholder_item_no_data" translatable="false">--</string>
 
     <!-- Edit View Strings -->
     <string name="edit_view_dive_number_hint">Dive Number*</string>
@@ -82,13 +89,13 @@
     <string name="edit_view_date_helper">*Required</string>
     <string name="edit_view_duration_hint">Dive Duration (minutes)*</string>
     <string name="edit_view_duration_helper">*Required</string>
-    <string name="edit_view_maxdepth_hint">Maximum Depth (feet)*</string>
+    <string name="edit_view_maxdepth_hint">Maximum Depth (meters)*</string>
     <string name="edit_view_maxdepth_helper">*Required</string>
     <string name="edit_view_location_hint">Location*</string>
     <string name="edit_view_location_helper">*Required</string>
-    <string name="edit_view_weight_hint">Weight used (lbs)</string>
-    <string name="edit_view_air_in_hint">Air in (PSI)</string>
-    <string name="edit_view_air_out_hint">Air Out (PSI)</string>
+    <string name="edit_view_weight_hint">Weight used (kg)</string>
+    <string name="edit_view_air_in_hint">Air in (bar)</string>
+    <string name="edit_view_air_out_hint">Air Out (bar)</string>
     <string name="edit_view_notes_hint">Notes and Comments</string>
     <string name="edit_view_button_save_label">SAVE</string>
 

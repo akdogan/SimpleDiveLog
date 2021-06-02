@@ -9,10 +9,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.ServiceLocator
 import com.akdogan.simpledivelog.application.mainactivity.MainActivity
 import com.akdogan.simpledivelog.databinding.FragmentDetailViewBinding
+import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.ErrorCases
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 
@@ -30,6 +32,8 @@ class DetailViewFragment : Fragment() {
         )
     }
 
+    private lateinit var recViewAdapter: DetailViewListAdapter
+
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
@@ -43,6 +47,8 @@ class DetailViewFragment : Fragment() {
 
         // Join into the options menu
         setHasOptionsMenu(true)
+
+        setupListView()
 
         return binding.root
     }
@@ -104,6 +110,13 @@ class DetailViewFragment : Fragment() {
             }
         })
 
+        detailViewModel.diveLogEntry.observe(viewLifecycleOwner, { item: DiveLogEntry? ->
+            Log.i("DETAIL_VIEW", "observe dle called with $item")
+            item?.let{
+                addDataSet(it)
+            }
+        })
+
         // Observe the trigger for unauthorized Access
         detailViewModel.unauthorizedAccess.observe(viewLifecycleOwner, {
             if (it == true) {
@@ -123,6 +136,20 @@ class DetailViewFragment : Fragment() {
             }
         })
 
+    }
+
+    private fun setupListView(){
+        recViewAdapter = DetailViewListAdapter()
+        binding.detailItemList.apply{
+            this.adapter = recViewAdapter
+            addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
+        }
+
+    }
+
+    private fun addDataSet(item: DiveLogEntry){
+        Log.i("DETAIL_VIEW", "Add Dataset $item")
+        recViewAdapter.dataSet = item.toDetailItemsList(resources)
     }
 
     private fun makeToast(message: String){

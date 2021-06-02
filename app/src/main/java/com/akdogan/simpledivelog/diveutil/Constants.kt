@@ -7,6 +7,7 @@ object Constants{
     const val PREF_PRESSURE_UNIT_KEY = "pref_pressure_unit_key"
     const val PREF_PRESSURE_UNIT_DEAFULT = false
 
+    // Cache Worker
     const val CACHE_CLEANUP_WORKER_FILENAME_KEY = "filename_key"
 
     // used to communicate from LaunchActivity to MainActivity
