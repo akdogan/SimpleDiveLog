@@ -10,6 +10,9 @@ object Constants{
     // Cache Worker
     const val CACHE_CLEANUP_WORKER_FILENAME_KEY = "filename_key"
 
+    // Communicate from parents to PictureFragment
+    const val SHARED_VIEW_MODEL_TAG = "shared_picture_fragment_view_model"
+
     // used to communicate from LaunchActivity to MainActivity
     const val LOGIN_VERIFIED_KEY = "login_verified_key"
     const val LOGIN_SUCCESS = 11

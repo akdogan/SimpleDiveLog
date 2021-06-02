@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application.ui.editview
+package com.akdogan.simpledivelog.application.ui.pictureview
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -23,7 +23,7 @@ import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.akdogan.simpledivelog.R
-import com.akdogan.simpledivelog.application.ServiceLocator
+import com.akdogan.simpledivelog.diveutil.Constants.SHARED_VIEW_MODEL_TAG
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -33,58 +33,59 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
 
-// TODO Add delete picture button
 class PictureFragment : Fragment() {
-    private lateinit var viewModel: EditViewModel
 
     private var cameraTempUri: Uri? = null
 
     private lateinit var imageView: ImageView
+
+    private lateinit var viewModel: PictureFragmentViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
 
-        val application = requireNotNull(this.activity).application
-        val viewModelFactory = EditViewModelFactory(application, ServiceLocator.repo, null)
-        // TODO Check proper way to get the proper viewModel instance
-        // !!! Seems like the viewmodel is now bound to the application lifecycle with this method
+        viewModel = ViewModelProvider(requireParentFragment()).get(
+            SHARED_VIEW_MODEL_TAG,
+            PictureFragmentViewModel::class.java
+        )
+        // TODO catch Runtime exception when viewModel cannot be instantiatd
 
-        // If you’re using a shared ViewModel between multiple fragments, make sure you’re using the
-        // same instance in all screens. This can happen when passing the Fragment instead of the
-        // Activity as the LifecycleOwner to the ViewModelProviders or using by ViewModels in a
-        // fragment instead of by activityViewModels().
-        
-        viewModel = ViewModelProvider(
-            requireParentFragment(),
-            viewModelFactory
-        ).get(EditViewModel::class.java)
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_picture, container, false)
+    }
+
+    private fun setupControls(){
+        val openGalleryButton = view?.findViewById<FloatingActionButton>(R.id.open_gallery_button)
+        val takePictureButton = view?.findViewById<FloatingActionButton>(R.id.take_picture_button)
+        if (viewModel.readOnlyMode){
+            openGalleryButton?.visibility = View.GONE
+            takePictureButton?.visibility = View.GONE
+        } else {
+            openGalleryButton?.setOnClickListener {
+                mRequestPermissionGallery()
+            }
+
+            takePictureButton?.setOnClickListener {
+                    if (checkHardwareAvailable()) {
+                        mRequestPermissionCamera()
+                    }
+                }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupControls()
         imageView = view.findViewById(R.id.picture_fragment_image_view)
-
-        view.findViewById<FloatingActionButton>(R.id.open_gallery_button).setOnClickListener {
-            mRequestPermissionGallery()
-        }
-
-        view.findViewById<FloatingActionButton>(R.id.take_picture_button_1)
-            .setOnClickListener {
-                if (checkHardwareAvailable()) {
-                    mRequestPermissionCamera()
-                }
-            }
 
         imageView.setOnClickListener {
             goFullScreen()
         }
 
         viewModel.loadRemotePicture.observe(viewLifecycleOwner, { load ->
+
             if (load) {
                 viewModel.remoteImgUrl?.let {
                     Glide.with(requireContext())
@@ -257,8 +258,6 @@ class PictureFragment : Fragment() {
     }
 
     // TODO: Maybe move Fileinteraction into its own repository
-
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {

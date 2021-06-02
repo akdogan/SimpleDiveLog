@@ -6,17 +6,20 @@ import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.commit
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.ServiceLocator
 import com.akdogan.simpledivelog.application.mainactivity.MainActivity
+import com.akdogan.simpledivelog.application.ui.pictureview.PictureFragment
 import com.akdogan.simpledivelog.databinding.FragmentDetailViewBinding
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.ErrorCases
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
+import com.akdogan.simpledivelog.diveutil.Constants.SHARED_VIEW_MODEL_TAG
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
@@ -25,13 +28,7 @@ class DetailViewFragment : Fragment() {
     private var t: Toast? = null
     private lateinit var binding : FragmentDetailViewBinding
     private val args: DetailViewFragmentArgs by navArgs()
-    private val detailViewModel: DetailViewModel by viewModels{
-        DetailViewModelFactory(
-            ServiceLocator.repo,
-            args.diveLogId
-        )
-    }
-
+    private lateinit var detailViewModel: DetailViewModel
     private lateinit var recViewAdapter: DetailViewListAdapter
 
     override fun onCreateView(
@@ -42,11 +39,26 @@ class DetailViewFragment : Fragment() {
         binding = DataBindingUtil.inflate(
                 inflater, R.layout.fragment_detail_view, container, false)
 
+        val viewModelFactory = DetailViewModelFactory(
+            ServiceLocator.repo,
+            args.diveLogId
+        )
+        detailViewModel = ViewModelProvider(this, viewModelFactory).get(
+            SHARED_VIEW_MODEL_TAG,
+            DetailViewModel::class.java
+        )
+
+
         binding.lifecycleOwner = this
         binding.detailViewModel = detailViewModel
 
         // Join into the options menu
         setHasOptionsMenu(true)
+
+        // Setup the picture child fragment
+        childFragmentManager.commit {
+            add(R.id.detail_view_picture_container, PictureFragment::class.java, null)
+        }
 
         setupListView()
 
@@ -78,8 +90,8 @@ class DetailViewFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Observe if this fragment was navigated back to and call refresh in the viewmodel accordingly
-        val navController = findNavController();
+        // Observe if this fragment was navigated back to and call refresh in the viewModel accordingly
+        val navController = findNavController()
         // We use a String here, but any type that can be put in a Bundle is supported
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(getString(R.string.navigated_back_key))?.observe(
             viewLifecycleOwner) { result ->
@@ -105,7 +117,7 @@ class DetailViewFragment : Fragment() {
             // TODO Loading probably needs to get updated
             if (it == RepositoryDownloadStatus.DONE){
                 binding.detailViewProgressCircular.hide()
-                binding.detailViewMainContent.visibility = View.VISIBLE
+                //binding.detailViewMainContent.visibility = View.VISIBLE
 
             }
         })

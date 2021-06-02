@@ -47,7 +47,7 @@
         </activity>
 
         <activity
-            android:name=".application.ui.editview.PictureFullscreenActivity"
+            android:name=".application.ui.pictureview.PictureFullscreenActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
 
         <activity

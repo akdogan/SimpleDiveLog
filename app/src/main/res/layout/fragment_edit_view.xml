@@ -68,8 +68,9 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
-                    android:id="@+id/picture_container_view"
-                    android:name="com.akdogan.simpledivelog.application.ui.editview.PictureFragment"/>
+                    android:id="@+id/edit_view_picture_container"/>
+                    <!--android:name="com.akdogan.simpledivelog.application.ui.pictureview.PictureFragment"-->
+
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/dive_number"
@@ -79,7 +80,7 @@
                     android:hint="@string/edit_view_dive_number_hint"
                     app:helperText="@string/edit_view_dive_number_helper"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/picture_container_view">
+                    app:layout_constraintTop_toBottomOf="@id/edit_view_picture_container">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:layout_width="match_parent"
