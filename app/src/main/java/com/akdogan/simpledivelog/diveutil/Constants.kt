@@ -7,7 +7,14 @@ object Constants{
     const val PREF_PRESSURE_UNIT_KEY = "pref_pressure_unit_key"
     const val PREF_PRESSURE_UNIT_DEAFULT = false
 
+    // Cache Worker
     const val CACHE_CLEANUP_WORKER_FILENAME_KEY = "filename_key"
+
+    // Picture Fragment
+    const val SHARED_VIEW_MODEL_TAG = "shared_picture_fragment_view_model"
+    const val IMAGE_TYPE_PREFIX = "image/*"
+    const val FILE_NAME_DATE_FORMAT = "yyyyMMdd_HHmmss"
+    const val FILE_NAME_EXTENSION_JPG = ".jpg"
 
     // used to communicate from LaunchActivity to MainActivity
     const val LOGIN_VERIFIED_KEY = "login_verified_key"

@@ -1,28 +1,24 @@
 package com.akdogan.simpledivelog.application.ui.editview
 
-import android.app.Application
 import android.icu.text.DateFormat
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
-import androidx.preference.PreferenceManager
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.akdogan.simpledivelog.application.CleanupCacheWorker
+import com.akdogan.simpledivelog.application.ui.pictureview.PictureFragmentViewModel
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
 import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.DataRepository
-
 import com.akdogan.simpledivelog.diveutil.Constants
-import com.akdogan.simpledivelog.diveutil.UnitConverter
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
-// TODO Remove Application access and use preferences repo instead
 class EditViewModelFactory(
-    private val application: Application,
+    private val workManager: WorkManager,
     private val repo: DataRepository,
     private val entryId: String?
 
@@ -30,7 +26,7 @@ class EditViewModelFactory(
     @Suppress("unchecked_cast")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(EditViewModel::class.java)) {
-            return EditViewModel(application, repo, entryId) as T
+            return EditViewModel(workManager, repo, entryId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
@@ -38,12 +34,12 @@ class EditViewModelFactory(
 
 
 class EditViewModel(
-    application: Application,
-    val repository: DataRepository,
+    private val workManager: WorkManager,
+    private val repository: DataRepository,
     diveLogId: String?
-) : AndroidViewModel(application) {
+) : PictureFragmentViewModel(){
 
-    var contentUri: Uri? = null
+    override var contentUri: Uri? = null
         set(value) {
             if (value != null) {
                 imgUrl = null
@@ -54,21 +50,18 @@ class EditViewModel(
 
     private var imgUrl: String? = null
 
-    var remoteImgUrl: String? = null
+    override var remoteImgUrl: String? = null
         private set
 
     private val _loadRemotePicture = MutableLiveData<Boolean>()
-    val loadRemotePicture: LiveData<Boolean>
+    override val loadRemotePicture: LiveData<Boolean>
         get() = _loadRemotePicture
 
     var networkAvailable = repository.networkAvailable
 
-
     private val createNewEntry: Boolean = diveLogId == null
 
     private var entry: DiveLogEntry? = null
-
-    //val apiError = repository.apiError
 
     val downloadStatus = repository.downloadStatus
 
@@ -95,11 +88,6 @@ class EditViewModel(
     val airOutInput = MutableLiveData<String>()
     val notesInput = MutableLiveData<String>()
 
-
-    // Todo Check if the transformations are actually required at all
-    // Todo Alternatively have one DiveLogEntry LiveData Object, then we dont need to extract and then put together the body again. But all fields would need to be vars
-    // Todo maybe make intermediate class. Could also use the copy function
-    // When using livedata divelogentry object, maybe use single values with set to expose the write interface for only those values
     val diveNumberInput = MutableLiveData<String>()
     private val diveNumber = Transformations.map(diveNumberInput) { it?.toIntOrNull() }
 
@@ -116,8 +104,9 @@ class EditViewModel(
 
     val locationInput = MutableLiveData<String>()
 
-    private var converter: UnitConverter
+    override val readOnlyMode: Boolean = false
 
+    //private var converter: UnitConverter
 
     val enableSaveButton: MediatorLiveData<Boolean> = MediatorLiveData<Boolean>().apply {
         addSource(diveNumber) { value = checkEnableSaveButton() }
@@ -130,14 +119,14 @@ class EditViewModel(
     }
 
     init {
-
-        val prefs = PreferenceManager.getDefaultSharedPreferences(getApplication())
+        // Unit Conversion needs to be redone completely
+        /*val prefs = PreferenceManager.getDefaultSharedPreferences(getApplication())
 
         val convertPressure =
             prefs.getBoolean(Constants.PREF_PRESSURE_UNIT_KEY, Constants.PREF_PRESSURE_UNIT_DEAFULT)
         val convertDepth =
             prefs.getBoolean(Constants.PREF_DEPTH_UNIT_KEY, Constants.PREF_DEPTH_UNIT_DEFAULT)
-        converter = UnitConverter(convertDepth, convertPressure)
+        converter = UnitConverter(convertDepth, convertPressure)*/
         if (createNewEntry) {
             diveNumberInput.value = (repository.getLatestDiveNumber() + 1).toString()
         } else {
@@ -168,12 +157,12 @@ class EditViewModel(
         entry?.let {
             diveNumberInput.value = it.diveNumber.toString()
             diveDurationInput.value = it.diveDuration.toStringOrNull()
-            maxDepthInput.value = converter.depthToDisplay(it.maxDepth).toStringOrNull()
+            maxDepthInput.value = /*converter.depthToDisplay*/(it.maxDepth).toStringOrNull()
             locationInput.value = it.diveLocation
             _liveDate.value = it.diveDate
             weightInput.value = it.weight.toStringOrNull()
-            airInInput.value = converter.pressureToDisplay(it.airIn).toStringOrNull()
-            airOutInput.value = converter.pressureToDisplay(it.airOut).toStringOrNull()
+            airInInput.value = /*converter.pressureToDisplay*/(it.airIn).toStringOrNull()
+            airOutInput.value = /*converter.pressureToDisplay*/(it.airOut).toStringOrNull()
             notesInput.value = it.notes
             imgUrl = it.imgUrl // ???
             remoteImgUrl = it.imgUrl
@@ -237,33 +226,31 @@ class EditViewModel(
         }
     }
 
-    fun setupWorker(localUri: Uri) {
+    private fun setupWorker(localUri: Uri) {
         val filename = localUri.lastPathSegment
         val oneTimeRequest = OneTimeWorkRequestBuilder<CleanupCacheWorker>()
             .setInputData(workDataOf(Constants.CACHE_CLEANUP_WORKER_FILENAME_KEY to filename))
             .setInitialDelay(1, TimeUnit.MINUTES)
             .build()
-        WorkManager.getInstance(getApplication()).enqueue(oneTimeRequest)
+        workManager.enqueue(oneTimeRequest)
     }
-
 
     // TODO: Unit conversion from the settings needs to be completely redone
     @Throws(IllegalArgumentException::class)
     private fun createEntry(): DiveLogEntry {
         val result = DiveLogEntry(
-            entry?.dataBaseId ?: "",
-            requireNotNull(diveNumber.value),
-            requireNotNull(diveDuration.value),
-            converter.depthToData(requireNotNull(maxDepth.value)),
-            requireNotNull(locationInput.value),
-            requireNotNull(liveDate.value),
-            weightInput.value?.toIntOrNull(),
-            converter.pressureToData(airInInput.value?.toIntOrNull()),
-            converter.pressureToData(airOutInput.value?.toIntOrNull()),
-            notesInput.value,
-            imgUrl
+            dataBaseId = entry?.dataBaseId ?: "",
+            diveNumber = requireNotNull(diveNumber.value),
+            diveDuration = requireNotNull(diveDuration.value),
+            maxDepth = /*converter.depthToData*/(requireNotNull(maxDepth.value)),
+            diveLocation = requireNotNull(locationInput.value),
+            diveDate = requireNotNull(liveDate.value),
+            weight = weightInput.value?.toIntOrNull(),
+            airIn = /*converter.pressureToData*/(airInInput.value?.toIntOrNull()),
+            airOut = /*converter.pressureToData*/(airOutInput.value?.toIntOrNull()),
+            notes = notesInput.value,
+            imgUrl = imgUrl
         )
-        //onMakeToast("New Entry Created")
         return result
     }
 
@@ -287,10 +274,9 @@ class EditViewModel(
         _makeToast.value = null
     }
 
-
+    fun Int?.toStringOrNull(): String? {
+        return this?.toString()
+    }
 
 }
 
-fun Int?.toStringOrNull(): String? {
-    return this?.toString()
-}

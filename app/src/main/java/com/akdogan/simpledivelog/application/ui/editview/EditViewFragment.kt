@@ -12,15 +12,20 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import androidx.work.WorkManager
 import com.akdogan.simpledivelog.R
 import com.akdogan.simpledivelog.application.ServiceLocator
 import com.akdogan.simpledivelog.application.mainactivity.MainActivity
+import com.akdogan.simpledivelog.application.ui.pictureview.PictureFragment
 import com.akdogan.simpledivelog.databinding.FragmentEditViewBinding
 import com.akdogan.simpledivelog.datalayer.ErrorCases
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryDownloadStatus
 import com.akdogan.simpledivelog.datalayer.repository.RepositoryUploadStatus
+import com.akdogan.simpledivelog.diveutil.Constants.SHARED_VIEW_MODEL_TAG
 import com.google.android.material.textfield.TextInputEditText
 import java.util.*
 
@@ -30,6 +35,7 @@ import java.util.*
 class EditViewFragment : Fragment() {
     private var t: Toast? = null
     private lateinit var binding: FragmentEditViewBinding
+    private val args: EditViewFragmentArgs by navArgs()
     private lateinit var editViewModel: EditViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,21 +45,30 @@ class EditViewFragment : Fragment() {
         binding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_edit_view, container, false
         )
-        val application = requireNotNull(this.activity).application
+
         val viewModelFactory = EditViewModelFactory(
-            application,
+            WorkManager.getInstance(requireContext()),
             ServiceLocator.repo,
-            EditViewFragmentArgs.fromBundle(requireArguments()).entryId
+            args.entryId
         )
-        editViewModel = ViewModelProvider(this, viewModelFactory).get(EditViewModel::class.java)
+        editViewModel = ViewModelProvider(this, viewModelFactory).get(
+            SHARED_VIEW_MODEL_TAG,
+            EditViewModel::class.java
+        )
         binding.lifecycleOwner = this
         binding.editViewModel = editViewModel
+
+        // Add Picture Fragment
+        childFragmentManager.commit {
+            add(R.id.edit_view_picture_container, PictureFragment::class.java, null)
+        }
 
         // Join into the options menu
         setHasOptionsMenu(true)
 
         return binding.root
     }
+
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)

@@ -1,18 +1,19 @@
 package com.akdogan.simpledivelog.application.ui.detailview
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
+import com.akdogan.simpledivelog.application.ui.pictureview.PictureFragmentViewModel
 import com.akdogan.simpledivelog.datalayer.DiveLogEntry
 import com.akdogan.simpledivelog.datalayer.ErrorCases.GENERAL_UNAUTHORIZED
 import com.akdogan.simpledivelog.datalayer.Result
 import com.akdogan.simpledivelog.datalayer.repository.DataRepository
 import kotlinx.coroutines.launch
 
-// TODO Refactor all Viewmodels to standard Viewmodel if app is not needed
 class DetailViewModel(
     val repository: DataRepository,
     val diveLogId: String
-) : ViewModel() {
+) : PictureFragmentViewModel() {
 
     private val _unauthorizedAccess = MutableLiveData<Boolean>()
     val unauthorizedAccess: LiveData<Boolean>
@@ -31,6 +32,18 @@ class DetailViewModel(
     private val _navigateBack = MutableLiveData<Boolean>()
     val navigateBack: LiveData<Boolean>
         get() = _navigateBack
+
+    private val _loadRemotePicture = MutableLiveData<Boolean>()
+    override val loadRemotePicture: LiveData<Boolean>
+        get() = _loadRemotePicture
+
+    override var remoteImgUrl: String? = null
+        private set
+
+    override val readOnlyMode: Boolean = true
+
+    // contentUri only satisfies the PictureFragmentViewModel, its not actively used
+    override var contentUri: Uri? = null
 
     init {
         fetchDiveLogEntry()
@@ -53,7 +66,10 @@ class DetailViewModel(
                     else -> onNavigateBack()
                 }
             } else {
-                _diveLogEntry.postValue((result as Result.Success).body)
+                val entry = (result as Result.Success).body
+                _diveLogEntry.postValue(entry)
+                remoteImgUrl = entry.imgUrl
+                _loadRemotePicture.postValue(true)
             }
         }
     }

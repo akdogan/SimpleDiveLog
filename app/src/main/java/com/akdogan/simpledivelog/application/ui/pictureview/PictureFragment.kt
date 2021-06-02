@@ -1,4 +1,4 @@
-package com.akdogan.simpledivelog.application.ui.editview
+package com.akdogan.simpledivelog.application.ui.pictureview
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -23,7 +23,10 @@ import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.akdogan.simpledivelog.R
-import com.akdogan.simpledivelog.application.ServiceLocator
+import com.akdogan.simpledivelog.diveutil.Constants.FILE_NAME_DATE_FORMAT
+import com.akdogan.simpledivelog.diveutil.Constants.FILE_NAME_EXTENSION_JPG
+import com.akdogan.simpledivelog.diveutil.Constants.IMAGE_TYPE_PREFIX
+import com.akdogan.simpledivelog.diveutil.Constants.SHARED_VIEW_MODEL_TAG
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -33,58 +36,59 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
 
-// TODO Add delete picture button
 class PictureFragment : Fragment() {
-    private lateinit var viewModel: EditViewModel
 
     private var cameraTempUri: Uri? = null
 
     private lateinit var imageView: ImageView
+
+    private lateinit var viewModel: PictureFragmentViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
 
-        val application = requireNotNull(this.activity).application
-        val viewModelFactory = EditViewModelFactory(application, ServiceLocator.repo, null)
-        // TODO Check proper way to get the proper viewModel instance
-        // !!! Seems like the viewmodel is now bound to the application lifecycle with this method
+        viewModel = ViewModelProvider(requireParentFragment()).get(
+            SHARED_VIEW_MODEL_TAG,
+            PictureFragmentViewModel::class.java
+        )
+        // TODO catch Runtime exception when viewModel cannot be instantiated
 
-        // If you’re using a shared ViewModel between multiple fragments, make sure you’re using the
-        // same instance in all screens. This can happen when passing the Fragment instead of the
-        // Activity as the LifecycleOwner to the ViewModelProviders or using by ViewModels in a
-        // fragment instead of by activityViewModels().
-        
-        viewModel = ViewModelProvider(
-            requireParentFragment(),
-            viewModelFactory
-        ).get(EditViewModel::class.java)
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_picture, container, false)
+    }
+
+    private fun setupControls(){
+        val openGalleryButton = view?.findViewById<FloatingActionButton>(R.id.open_gallery_button)
+        val takePictureButton = view?.findViewById<FloatingActionButton>(R.id.take_picture_button)
+        if (viewModel.readOnlyMode){
+            openGalleryButton?.visibility = View.GONE
+            takePictureButton?.visibility = View.GONE
+        } else {
+            openGalleryButton?.setOnClickListener {
+                mRequestPermissionGallery()
+            }
+
+            takePictureButton?.setOnClickListener {
+                    if (checkHardwareAvailable()) {
+                        mRequestPermissionCamera()
+                    }
+                }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupControls()
         imageView = view.findViewById(R.id.picture_fragment_image_view)
-
-        view.findViewById<FloatingActionButton>(R.id.open_gallery_button).setOnClickListener {
-            mRequestPermissionGallery()
-        }
-
-        view.findViewById<FloatingActionButton>(R.id.take_picture_button_1)
-            .setOnClickListener {
-                if (checkHardwareAvailable()) {
-                    mRequestPermissionCamera()
-                }
-            }
 
         imageView.setOnClickListener {
             goFullScreen()
         }
 
         viewModel.loadRemotePicture.observe(viewLifecycleOwner, { load ->
+
             if (load) {
                 viewModel.remoteImgUrl?.let {
                     Glide.with(requireContext())
@@ -111,7 +115,9 @@ class PictureFragment : Fragment() {
             .setTitle(title)
             .setMessage(text)
         if (settingsButton) {
-            builder.setPositiveButton("Settings") { dialog, id ->
+            builder.setPositiveButton(
+                getString(R.string.picture_fragment_dialog_positive_button_settings)
+            ) { _, _ ->
                 val i = Intent()
                 i.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                 i.addCategory(Intent.CATEGORY_DEFAULT)
@@ -144,7 +150,6 @@ class PictureFragment : Fragment() {
 
     }
 
-
     private fun checkHardwareAvailable(): Boolean =
         requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)
 
@@ -163,11 +168,10 @@ class PictureFragment : Fragment() {
             permission
         ) == PackageManager.PERMISSION_GRANTED
 
-    // TODO Hardcoded paramstring, should be put in const maybe
     private fun openGallery() {
         val galleryIntent =
             Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-                type = "image/*"
+                type = IMAGE_TYPE_PREFIX
             }
         try {
             startActivityForResult(galleryIntent, REQUEST_GALLERY_IMAGE)
@@ -176,25 +180,28 @@ class PictureFragment : Fragment() {
         }
     }
 
-    // Todo: Use strings.xml instead of hardcoded
     private fun showGalleryRationale() =
-        myDialog("Gallery Permission", "Please allow the app open pictures from the gallery", true)
+        myDialog(
+            getString(R.string.picture_fragment_gallery_dialog_title),
+            getString(R.string.picture_fragment_gallery_dialog_rationale_body),
+            true
+        )
 
     private fun showCameraRationale() = myDialog(
-        "Camera Permission",
-        "Please allow the app to use the camera in order to take pictures",
+        getString(R.string.picture_fragment_camera_dialog_title),
+        getString(R.string.picture_fragment_camera_dialog_rationale_body),
         true
     )
 
     private fun showGalleryDenied() = myDialog(
-        "Gallery Permission",
-        "Permission was denied, please allow permission in the settings",
+        getString(R.string.picture_fragment_gallery_dialog_title),
+        getString(R.string.picture_fragment_dialog_denied_body),
         true
     )
 
     private fun showCameraDenied() = myDialog(
-        "Camera Permission",
-        "Permission was denied, please allow permission in the settings",
+        getString(R.string.picture_fragment_camera_dialog_title),
+        getString(R.string.picture_fragment_dialog_denied_body),
         true
     )
 
@@ -257,8 +264,6 @@ class PictureFragment : Fragment() {
     }
 
     // TODO: Maybe move Fileinteraction into its own repository
-
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
@@ -339,13 +344,13 @@ class PictureFragment : Fragment() {
     @Throws(IOException::class)
     fun createImageFile(): File {
         // Create an image file name
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val timeStamp: String = SimpleDateFormat(FILE_NAME_DATE_FORMAT).format(Date())
         val storageDir: File? =
             context?.cacheDir
         try {
             return File.createTempFile(
                 "JPEG_${timeStamp}_", /* prefix */
-                ".jpg", /* suffix */
+                FILE_NAME_EXTENSION_JPG, /* suffix */
                 storageDir /* directory */
             )
         } catch (e: Exception) {
