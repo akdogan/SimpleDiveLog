@@ -23,6 +23,9 @@ import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.akdogan.simpledivelog.R
+import com.akdogan.simpledivelog.diveutil.Constants.FILE_NAME_DATE_FORMAT
+import com.akdogan.simpledivelog.diveutil.Constants.FILE_NAME_EXTENSION_JPG
+import com.akdogan.simpledivelog.diveutil.Constants.IMAGE_TYPE_PREFIX
 import com.akdogan.simpledivelog.diveutil.Constants.SHARED_VIEW_MODEL_TAG
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -50,7 +53,7 @@ class PictureFragment : Fragment() {
             SHARED_VIEW_MODEL_TAG,
             PictureFragmentViewModel::class.java
         )
-        // TODO catch Runtime exception when viewModel cannot be instantiatd
+        // TODO catch Runtime exception when viewModel cannot be instantiated
 
         return inflater.inflate(R.layout.fragment_picture, container, false)
     }
@@ -112,7 +115,9 @@ class PictureFragment : Fragment() {
             .setTitle(title)
             .setMessage(text)
         if (settingsButton) {
-            builder.setPositiveButton("Settings") { dialog, id ->
+            builder.setPositiveButton(
+                getString(R.string.picture_fragment_dialog_positive_button_settings)
+            ) { _, _ ->
                 val i = Intent()
                 i.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                 i.addCategory(Intent.CATEGORY_DEFAULT)
@@ -145,7 +150,6 @@ class PictureFragment : Fragment() {
 
     }
 
-
     private fun checkHardwareAvailable(): Boolean =
         requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)
 
@@ -164,11 +168,10 @@ class PictureFragment : Fragment() {
             permission
         ) == PackageManager.PERMISSION_GRANTED
 
-    // TODO Hardcoded paramstring, should be put in const maybe
     private fun openGallery() {
         val galleryIntent =
             Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-                type = "image/*"
+                type = IMAGE_TYPE_PREFIX
             }
         try {
             startActivityForResult(galleryIntent, REQUEST_GALLERY_IMAGE)
@@ -177,25 +180,28 @@ class PictureFragment : Fragment() {
         }
     }
 
-    // Todo: Use strings.xml instead of hardcoded
     private fun showGalleryRationale() =
-        myDialog("Gallery Permission", "Please allow the app open pictures from the gallery", true)
+        myDialog(
+            getString(R.string.picture_fragment_gallery_dialog_title),
+            getString(R.string.picture_fragment_gallery_dialog_rationale_body),
+            true
+        )
 
     private fun showCameraRationale() = myDialog(
-        "Camera Permission",
-        "Please allow the app to use the camera in order to take pictures",
+        getString(R.string.picture_fragment_camera_dialog_title),
+        getString(R.string.picture_fragment_camera_dialog_rationale_body),
         true
     )
 
     private fun showGalleryDenied() = myDialog(
-        "Gallery Permission",
-        "Permission was denied, please allow permission in the settings",
+        getString(R.string.picture_fragment_gallery_dialog_title),
+        getString(R.string.picture_fragment_dialog_denied_body),
         true
     )
 
     private fun showCameraDenied() = myDialog(
-        "Camera Permission",
-        "Permission was denied, please allow permission in the settings",
+        getString(R.string.picture_fragment_camera_dialog_title),
+        getString(R.string.picture_fragment_dialog_denied_body),
         true
     )
 
@@ -338,13 +344,13 @@ class PictureFragment : Fragment() {
     @Throws(IOException::class)
     fun createImageFile(): File {
         // Create an image file name
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val timeStamp: String = SimpleDateFormat(FILE_NAME_DATE_FORMAT).format(Date())
         val storageDir: File? =
             context?.cacheDir
         try {
             return File.createTempFile(
                 "JPEG_${timeStamp}_", /* prefix */
-                ".jpg", /* suffix */
+                FILE_NAME_EXTENSION_JPG, /* suffix */
                 storageDir /* directory */
             )
         } catch (e: Exception) {

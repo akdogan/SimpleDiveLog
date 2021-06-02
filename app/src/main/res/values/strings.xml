@@ -99,6 +99,14 @@
     <string name="edit_view_notes_hint">Notes and Comments</string>
     <string name="edit_view_button_save_label">SAVE</string>
 
+    <!-- Picture Fragment Strings -->
+    <string name="picture_fragment_gallery_dialog_title">Gallery Permission</string>
+    <string name="picture_fragment_gallery_dialog_rationale_body">Please allow the app open pictures from the gallery</string>
+    <string name="picture_fragment_camera_dialog_title">Camera Permission</string>
+    <string name="picture_fragment_camera_dialog_rationale_body">Please allow the app to use the camera in order to take pictures</string>
+    <string name="picture_fragment_dialog_denied_body">Permission was denied, please allow permission in the settings</string>
+    <string name="picture_fragment_dialog_positive_button_settings">Settings</string>
+
     <!-- Error Messages -->
     <string name="general_error">Something went wrong, please try again</string>
     <string name="login_unauthorized">Username or password is incorrect</string>
